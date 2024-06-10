@@ -1,73 +1,134 @@
-// #include "Push.h"
-// #include "Constants.h"
-// #include "StateMachine.h"
-// #include "StartState.h"
-// #include <iostream>
-// #include <GL/glew.h>
-// #include <GLFW/glfw3.h>
-// #include <map>
-// #include <string>
+#include "breaknotes_lib.h"
 
-// // Global variables
-// std::map<std::string, GLuint> gFonts;
-// std::map<std::string, GLuint> gTextures;
-// std::map<std::string, GLuint> gSounds;
-// std::unique_ptr<StateMachine> gStateMachine;
-// std:map<int, bool> gKeysPressed;
 
-// void loadResources() 
-// {
-// 	// Load fonts
-// 	gFonts["small"] = loadFont("assets/fonts/font.ttf", 8);
-// 	gFonts["medium"] = loadFont("assets/fonts/font.ttf", 16);
-// 	gFonts["large"] = loadFont("assets/fonts/font.ttf", 32);
-
-// 	// Load textures
-// 	gTextures["background"] = loadTexture("assets/graphics/background.png");
-// 	gTextures["main"] = loadTexture("assets/graphics/breakout.png");
-// 	gTextures["arrows"] = loadTexture("assets/graphics/arrows.png");
-// 	gTextures["hearts"] = loadTexture("assets/graphics/hearts.png");
-// 	gTextures["particle"] = loadTexture("assets/graphics/particle.png");
-
-// 	// Load sounds buffers
-// 	gSounds["paddle-hit"] = loadSound("assets/sounds/paddle_hit.wav");
-// 	gSounds["score"] = loadSound("assets/sounds/score.wav");
-// 	gSounds["wall-hit"] = loadSound("assets/sounds/wall_hit.wav");
-// 	gSounds["confirm"] = loadSound("assets/sounds/confirm.wav");
-// 	gSounds["select"] = loadSound("assets/sounds/select.wav");
-// 	gSounds["no-select"] = loadSound("assets/sounds/no-select.wav");
-// 	gSounds["brick-hit-1"] = loadSound("assets/sounds/brick-hit-1.wav");
-// 	gSounds["brick-hit-2"] = loadSound("assets/sounds/brick-hit-2.wav");
-// 	gSounds["hurt"] = loadSound("assets/sounds/hurt.wav");
-// 	gSounds["victory"] = loadSound("assets/sounds/victory.wav");
-// 	gSounds["recover"] = loadSound("assets/sounds/recover.wav");
-// 	gSounds["high-score"] = loadSound("assets/sounds/high_score.wav");
-// 	gSounds["pause"] = loadSound("assets/sounds/pause.wav");
-
-// 	gSounds["music"] = loadSound("assets/sounds/music.wav");
-
-// }
+// ###########################################################
+//                      Platform Globals
+// ###########################################################
 
 static bool running = true;
 
+// ###########################################################
+//                     Platform Functions                        
+// ###########################################################
+
+bool platform_create_window(int width, int height, const char* title);
+void platform_update_window();
+
+// ###########################################################
+//                     Windows Platform
+// ###########################################################
+
+#ifdef _WIN32 // check if we are on windows
+#define WIN32_LEAN_AND_MEAN // remove unneeded windows stuff
+#define NOMINMAX // remove min and max macros
+#include <Windows.h>
+
+// ###########################################################
+//                     Windows Globals
+// ###########################################################
+
+static HWND window;
+
+// ###########################################################
+//                     Platform Implementation
+// ###########################################################
+LRESULT CALLBACK windows_window_callback(HWND window, UINT message,
+                                         WPARAM w_param, LPARAM l_param)
+{
+  LRESULT result = 0;
+
+  switch(message)
+  {
+    case WM_CLOSE: // if the window is closed
+    case WM_DESTROY:
+    {
+      running = false; 
+      break;
+    }
+       
+
+    default:
+        {
+            result = DefWindowProcA(window, message, w_param, l_param);
+        } 
+    }   
+
+    return result;
+}
+
+
+bool platform_create_window(int width, int height, const char* title)
+{
+    HINSTANCE instance = GetModuleHandleA(0);
+
+    WNDCLASSA window_class = {};
+    window_class.hInstance = instance; // handle to the instance that contains the window procedure for the class
+    window_class.hIcon = LoadIcon(instance, IDI_APPLICATION); // handle to the class icon
+    window_class.hCursor = LoadCursor(NULL, IDC_ARROW); // Decides the lok of the cursor
+    window_class.lpszClassName = title; // Unique identifier for the class, which can be the title of the window
+    window_class.lpfnWndProc = windows_window_callback; // Callback function that processes messages sent to the window
+
+    if(!RegisterClassA(&window_class))
+    {
+        return false;
+    }
+
+
+    // WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX  | WS_MAXIMIZEBOX
+    int dwStyle = WS_OVERLAPPEDWINDOW; // Window style
+    
+    // Fake Window initializing OpenGL
+    window = CreateWindowExA(  0 // Extended window style
+                                    ,title // This references references lpszClassName from window_class
+                                    ,title // Window title
+                                    ,dwStyle // Window style
+                                    ,100 // X position
+                                    ,100 // Y position
+                                    ,width // Width
+                                    ,height // Height
+                                    ,NULL // Handle to the parent window
+                                    ,NULL // Handle to the menu
+                                    ,instance // Handle to the instance
+                                    ,NULL // Pointer to the window creation data
+                                    );
+    if (!window) // If the window was not created
+    {
+
+        return false;
+    }
+
+    ShowWindow(window, SW_SHOW); // Show the window
+
+    return true;
+}
+
+void platform_update_window()
+{
+    MSG message; // create a message object
+    while (PeekMessageA(&message, window, 0, 0, PM_REMOVE)) // Peek for a message in the message queue and remove it 
+    {
+        TranslateMessage(&message); // Translate the message
+        DispatchMessageA(&message); // Calls the callback specified in the WNDCLASSA struct
+    }
+}
+
+#endif
+
+
 int main()
 {
-	// Push push;
-	// push.setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, true, false, false);
+    platform_create_window(1200, 720, "Breaknote");
 
-	// while (!glfwWindowShouldClose(push.getWindow()))
-	// {
-	// 	push.start();
+    while (running)
+    {
+        //Upate
+        platform_update_window();
 
-	// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        SM_TRACE("Test");
+        SM_ERROR("Test");
+        SM_WARN("Test");
+        SM_ASSERT(false, "Assertion not Hit!");
+    }
 
-	// 	push.finish();
-	// 	glfwPollEvents();
-	// }
-
-	while (running)
-	{
-		// Update
-	}
-	return 0;
+    return 0;
 }

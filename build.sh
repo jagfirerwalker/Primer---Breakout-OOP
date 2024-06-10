@@ -1,3 +1,6 @@
 #!/bin/bash
 
-clang src/main.cpp -obreakout.exe
+libs=-luser32
+warnings=-Wno-writable-strings
+
+clang++ -g src/main.cpp -obreakout.exe $libs $warnings
