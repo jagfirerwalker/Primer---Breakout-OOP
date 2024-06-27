@@ -12,3 +12,4 @@ build
 c_app_properties.json
 settings.json
 .clangd
+!freetype.lib
