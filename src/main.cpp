@@ -1,10 +1,12 @@
 #include "breaknotes_lib.h"
 #include "input.h"
 #include "game.h"
+#include "gl_renderer.cpp"
 // #include "sound.h"
 // # include "ui.h"
 
-
+#define APIENTRY
+#define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
 
 // #############################################################################
@@ -26,7 +28,7 @@ const char* gameLibName = "game.so";
 const char* gameLoadLibName = "game_load.so";
 #endif
 
-#include "gl_renderer.cpp"
+
 
 // #############################################################################
 //                           Game DLL Stuff
@@ -70,7 +72,7 @@ int main()
     {
         //Upate
         platform_update_window();
-        gl_render(&transientStorage);
+        // gl_render(&transientStorage);
 
         platform_swap_buffers();
 
