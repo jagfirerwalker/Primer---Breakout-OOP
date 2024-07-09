@@ -6,7 +6,39 @@
 
 #include <windows.h>
 #include <xaudio2.h>
-#include "wglect.h"
+#include "wglext.h"
+#include "input.h"
+#include <glcorearb.h>
+
+// #############################################################################
+//                           Windows Structures
+// #############################################################################
+
+// struct xAudioVoice : IXAudio2VoiceCallback
+// {
+// 	IXAudio2SourceVoice* voice;
+//     SoundOptions options;
+//     float fadeTimer;
+//     char* soundPath;
+
+//     int playing;
+
+//     void OnStreamEnd() noexcept
+//     {
+//         voice->Stop(); // Stop the voice
+//         playing = false;
+//     }
+
+//     void OnBufferStart(void * pBufferContext) noexcept
+//     {
+//         playing = true;
+//     }
+
+//     void OnVoiceProcessingPassEnd() noexcept {}
+//     void OnVoiceProcessingPassStart(UINT32 SamplesRequired) noexcept {}
+//     void OnBufferEnd(void * pBufferContext) noexcept {}
+//     void OnVoiceError(void *pBufferContext, HRESULT Error) noexcept {} // Function to take in a buffer context and an error code and return nothing
+// }
 
 // ###########################################################
 //                     Windows Globals
@@ -15,7 +47,7 @@
 static HWND window;
 static HDC dc;
 static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT_ptr; // Swap Interval function pointer
-static xAudioVoice voiceArr[MAX_CONCURRENT_SOUNDS]; // Array of xAudioVoice objects
+// static xAudioVoice voiceArr[MAX_CONCURRENT_SOUNDS]; // Array of xAudioVoice objects
 
 
 // ###########################################################
@@ -54,7 +86,7 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT message,
         
         KeyCodeID keycode = KeyCodeLookupTable[w_param];
         Key* key = &input->keys[keycode];
-        key->justPressed = !key->justpressed && !key->isDown && isDown; // If the key was not just pressed and is not down and is down then assign true to justPressed
+        key->justPressed = !key->justPressed && !key->isDown && isDown; // If the key was not just pressed and is not down and is down then assign true to justPressed
         key->justReleased = !key->justReleased && key->isDown && !isDown; // If the key was not just released and is down and is not down then assign true to justReleased
         key->isDown = isDown; // Assign isDown to the key
         key->halfTransitionCount++; // Increment the half transition count
@@ -182,8 +214,8 @@ bool platform_create_window(int width, int height, char* title)
             return false;
         }
 
-        wglChoosePixelFormatARB = (PFNGLCHOOSEPIXELFORMATARBPROC)platform_load_gl_function("wglChoosePixelFormatARB"); // Load the wglChoosePixelFormatARB function
-        wglCreateContextAttribsARB = (PFNGLCREATECONTEXTATTRIBSARBPROC)platform_load_gl_function("wglCreateContextAttribsARB"); // Load the wglCreateContextAttribsARB function
+        wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)platform_load_gl_function("wglChoosePixelFormatARB"); // Load the wglChoosePixelFormatARB function
+        wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)platform_load_gl_function("wglCreateContextAttribsARB"); // Load the wglCreateContextAttribsARB function
         wglSwapIntervalEXT_ptr = (PFNWGLSWAPINTERVALEXTPROC)platform_load_gl_function("wglSwapIntervalEXT"); // Load the wglSwapIntervalEXT function
 
         if(!wglCreateContextAttribsARB || !wglChoosePixelFormatARB)
@@ -206,8 +238,8 @@ bool platform_create_window(int width, int height, char* title)
     {
         // Add in the border size of the window
         {
-            Rect borderRect = {};
-            AdjustWindowRectEx(&borderRect, dwStyle, 0,0); // Adjust the window rect
+            RECT borderRect = {};
+            AdjustWindowRectEx(&borderRect, dwStyle, 0, 0); // Adjust the window rect
 
             width += borderRect.right - borderRect.left; // Add the border size to the width
             height += borderRect.bottom - borderRect.top; // Add the border size to the height
@@ -252,7 +284,53 @@ bool platform_create_window(int width, int height, char* title)
             WGL_DEPTH_BITS_ARB,     24,
             0 // Terminate with 0, otherwise OpenGL will throw an Error!
         };
+
+        UINT numPixelFormat;
+        int pixelFormat = 0;
+        if(!wglChoosePixelFormatARB(dc, pixelAttribs,
+                                    0, 
+                                    1,
+                                    &pixelFormat,
+                                    &numPixelFormat))
+        {
+            SM_ASSERT(0, "Failed to wglChoosePixelFormatARB");
+            return false;
+        }
+
+        PIXELFORMATDESCRIPTOR pfd = {0};
+        DescribePixelFormat(dc, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+
+        if(!SetPixelFormat(dc, pixelFormat, &pfd))
+        {
+            SM_ASSERT(0, "Failed to set pixel format");
+            return false;
+        }
+
+        const int contextAttribs[] =
+        {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+            0 // Terminate with 0, otherwise OpenGL will throw an Error!
+        };
+
+        HGLRC rc = wglCreateContextAttribsARB(dc, 0, contextAttribs);
+        if(!rc)
+        {
+            SM_ASSERT(0, "Failed to create Render Context for OpenGL");
+            return false;
+        }
+
+        if(!wglMakeCurrent(dc, rc))
+        {
+            SM_ASSERT(0, "Failed to wglMakeCurrent");
+            return false;
+        }
     }
+    ShowWindow(window, SW_SHOW);
+    return true;
+}
 
 void platform_update_window()
 {
@@ -262,4 +340,5 @@ void platform_update_window()
         TranslateMessage(&message); // Translate the message
         DispatchMessageA(&message); // Calls the callback specified in the WNDCLASSA struct
     }
+
 }

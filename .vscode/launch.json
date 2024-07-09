@@ -1,14 +1,22 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Launch",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/breakout",
-            "args": [],
-            "cwd":"${workspaceRoot}",
-            "console":"integratedTerminal"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Linux Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/breakout",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+    },
+    {
+      "name": "Windows Launch",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/breakout.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
 }
