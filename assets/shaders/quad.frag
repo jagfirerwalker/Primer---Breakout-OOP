@@ -18,28 +18,29 @@ layout(std430, binding = 1) buffer Materials
 
 void main()
 {
-  Material material = materials[materialIdx];
+  fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  // Material material = materials[materialIdx];
 
-  if(bool(renderOptions & RENDERING_OPTION_FONT))
-  {
-    vec4 textureColor = texelFetch(fontAtlas, ivec2(textureCoordsIn), 0);
+  // if(bool(renderOptions & RENDERING_OPTION_FONT))
+  // {
+  //   vec4 textureColor = texelFetch(fontAtlas, ivec2(textureCoordsIn), 0);
 
-    if(textureColor.r == 0.0)
-    {
-      discard;
-    }
+  //   if(textureColor.r == 0.0)
+  //   {
+  //     discard;
+  //   }
 
-    fragColor = textureColor.r * material.color;
-  }
-  else
-  {
-    vec4 textureColor = texelFetch(textureAtlas, ivec2(textureCoordsIn), 0);
+  //   fragColor = textureColor.r * material.color;
+  // }
+  // else
+  // {
+  //   vec4 textureColor = texelFetch(textureAtlas, ivec2(textureCoordsIn), 0);
 
-    if(textureColor.a == 0.0)
-    {
-      discard;
-    }
+  //   if(textureColor.a == 0.0)
+  //   {
+  //     discard;
+  //   }
 
-    fragColor = textureColor * material.color;
-  }
+  //   fragColor = textureColor * material.color;
+  // }
 }

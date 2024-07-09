@@ -2,10 +2,6 @@
 #include "render_interface.h"
 
 
-// To Load PNG Files
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 // // To Load TTF Files
 // #include <ft2build.h>
 // #include FT_FREETYPE_H
@@ -191,19 +187,66 @@ bool gl_init(BumpAllocator* transientStorage)
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
   glEnable(GL_DEBUG_OUTPUT);
 
-  // GLuint vertShaderID = gl_create_shader(GL_VERTEX_SHADER, 
-  //                                        "assets/shaders/quad.vert", transientStorage);
-  // GLuint fragShaderID = gl_create_shader(GL_FRAGMENT_SHADER, 
-  //                                        "assets/shaders/quad.frag", transientStorage);
-  // if(!vertShaderID || !fragShaderID)
-  // {
-  //   SM_ASSERT(false, "Failed to create Shaders")
-  //   return false;
-  // }
+  GLuint vertShaderID = gl_create_shader(GL_VERTEX_SHADER, 
+                                         "assets/shaders/quad.vert", transientStorage);
+  GLuint fragShaderID = gl_create_shader(GL_FRAGMENT_SHADER, 
+                                         "assets/shaders/quad.frag", transientStorage);
+  if(!vertShaderID || !fragShaderID)
+  {
+    SM_ASSERT(false, "Failed to create Shaders")
+    return false;
+  }
 
-  // long long timestampVert = get_timestamp("assets/shaders/quad.vert");
-  // long long timestampFrag = get_timestamp("assets/shaders/quad.frag");
-  // glContext.shaderTimestamp = max(timestampVert, timestampFrag);
+  long long timestampVert = get_timestamp("assets/shaders/quad.vert");
+  long long timestampFrag = get_timestamp("assets/shaders/quad.frag");
+  glContext.shaderTimestamp = max(timestampVert, timestampFrag);
+
+  glShaderSource(vertShaderID, 1, (const char* const*)&vertShaderSource, 0);
+  glShadersource(fragShaderID, 1, (const char* const*)&fragShaderSource, 0);
+
+  glCompileShader(vertShaderID);
+  glCompileShader(fragShaderID);
+
+  // Test if Vert Shader compiled successfully 
+  {
+    int success;
+    char shaderLog[2048] = {};
+
+    glGetShaderiv(vertShaderID, GL_COMPILE_STATUS, &success);
+    if(!success)
+    {
+      glGetShaderInfoLog(vertShaderID, 2048, 0, shaderLog);
+      SM_ASSERT(false, "Failed to compile %s Shader, Error: %s", shaderPath, shaderLog);
+      return 0;
+    }
+  }
+  {
+    int success;
+    char shaderLog[2048] = {};
+
+    glGetShaderiv(fragShaderID, GL_COMPILE_STATUS, &success);
+    if(!success)
+    {
+      glGetShaderInfoLog(fragShaderID, 2048, 0, shaderLog);
+      SM_ASSERT(false, "Failed to compile %s Shader, Error: %s", shaderPath, shaderLog);
+      return 0;
+    }
+  }
+  glContext.programID = glCreateProgram();
+  glAttachShader(glContext.programID, vertShaderID);
+  glAttachShader(glContext.programID, fragShaderID);
+  glLinkProgram(glContext.programID);
+  glDetachShader(glContext.programID, vertShaderID);
+  glDetachShader(glContext.programID, fragShaderID);
+  glDeleteShader(vertShaderID);
+  glDeleteShader(fragShaderID); 
+
+  GLuint VAO;
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+
+  glEnable(GL_DEPTH_TEST);
+  GL_DEPTH_FUNC(GL_GREATER);
 
   // glContext.programID = glCreateProgram();
   // glAttachShader(glContext.programID, vertShaderID);
@@ -310,140 +353,146 @@ bool gl_init(BumpAllocator* transientStorage)
   return true;
 }
 
-// void gl_render(BumpAllocator* transientStorage)
-// {
-//   // Texture Hot Reloading
-//   {
-//     long long currentTimestamp = get_timestamp(TEXTURE_PATH);
+void gl_render(BumpAllocator* transientStorage)
+{
+  glClearColor(119.0f / 255.0f, 33.0f / 255.0f, 111.0f / 255.0f, 1.0f);
+  glClearDepth(0.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, input->screenSizeX, input->screenSizeY);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 
-//     if(currentTimestamp > glContext.textureTimestamp)
-//     {    
-//       glActiveTexture(GL_TEXTURE0);
-//       int width, height, nChannels;
-//       char* data = (char*)stbi_load(TEXTURE_PATH, &width, &height, &nChannels, 4);
-//       if(data)
-//       {
-//         glContext.textureTimestamp = currentTimestamp;
-//         glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-//         stbi_image_free(data);
-//       }
-//     }
-//   }
+  // Texture Hot Reloading
+  // {
+  //   long long currentTimestamp = get_timestamp(TEXTURE_PATH);
 
-//   // Shader Hot Reloading
-//   {
-//     long long timestampVert = get_timestamp("assets/shaders/quad.vert");
-//     long long timestampFrag = get_timestamp("assets/shaders/quad.frag");
+  //   if(currentTimestamp > glContext.textureTimestamp)
+  //   {    
+  //     glActiveTexture(GL_TEXTURE0);
+  //     int width, height, nChannels;
+  //     char* data = (char*)stbi_load(TEXTURE_PATH, &width, &height, &nChannels, 4);
+  //     if(data)
+  //     {
+  //       glContext.textureTimestamp = currentTimestamp;
+  //       glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+  //       stbi_image_free(data);
+  //     }
+  //   }
+  // }
+
+  // // Shader Hot Reloading
+  // {
+  //   long long timestampVert = get_timestamp("assets/shaders/quad.vert");
+  //   long long timestampFrag = get_timestamp("assets/shaders/quad.frag");
     
-//     if(timestampVert > glContext.shaderTimestamp ||
-//        timestampFrag > glContext.shaderTimestamp)
-//     {
-//       GLuint vertShaderID = gl_create_shader(GL_VERTEX_SHADER, 
-//                                               "assets/shaders/quad.vert", transientStorage);
-//       GLuint fragShaderID = gl_create_shader(GL_FRAGMENT_SHADER, 
-//                                               "assets/shaders/quad.frag", transientStorage);
-//       if(!vertShaderID || !fragShaderID)
-//       {
-//         SM_ASSERT(false, "Failed to create Shaders")
-//         return;
-//       }
-//       GLuint programID = glCreateProgram();
-//       glAttachShader(programID, vertShaderID);
-//       glAttachShader(programID, fragShaderID);
-//       glLinkProgram(programID);
+  //   if(timestampVert > glContext.shaderTimestamp ||
+  //      timestampFrag > glContext.shaderTimestamp)
+  //   {
+  //     GLuint vertShaderID = gl_create_shader(GL_VERTEX_SHADER, 
+  //                                             "assets/shaders/quad.vert", transientStorage);
+  //     GLuint fragShaderID = gl_create_shader(GL_FRAGMENT_SHADER, 
+  //                                             "assets/shaders/quad.frag", transientStorage);
+  //     if(!vertShaderID || !fragShaderID)
+  //     {
+  //       SM_ASSERT(false, "Failed to create Shaders")
+  //       return;
+  //     }
+  //     GLuint programID = glCreateProgram();
+  //     glAttachShader(programID, vertShaderID);
+  //     glAttachShader(programID, fragShaderID);
+  //     glLinkProgram(programID);
 
-//       glDetachShader(programID, vertShaderID);
-//       glDetachShader(programID, fragShaderID);
-//       glDeleteShader(vertShaderID);
-//       glDeleteShader(fragShaderID);
+  //     glDetachShader(programID, vertShaderID);
+  //     glDetachShader(programID, fragShaderID);
+  //     glDeleteShader(vertShaderID);
+  //     glDeleteShader(fragShaderID);
 
-//       // Validate if program works
-//       {
-//         int programSuccess;
-//         char programInfoLog[512];
-//         glGetProgramiv(programID, GL_LINK_STATUS, &programSuccess);
+  //     // Validate if program works
+  //     {
+  //       int programSuccess;
+  //       char programInfoLog[512];
+  //       glGetProgramiv(programID, GL_LINK_STATUS, &programSuccess);
 
-//         if(!programSuccess)
-//         {
-//           glGetProgramInfoLog(programID, 512, 0, programInfoLog);
+  //       if(!programSuccess)
+  //       {
+  //         glGetProgramInfoLog(programID, 512, 0, programInfoLog);
 
-//           SM_ASSERT(0, "Failed to link program: %s", programInfoLog);
-//           return;
-//         }
-//       }
+  //         SM_ASSERT(0, "Failed to link program: %s", programInfoLog);
+  //         return;
+  //       }
+  //     }
 
-//       glDeleteProgram(glContext.programID);
-//       glContext.programID = programID;
-//       glUseProgram(programID);
+  //     glDeleteProgram(glContext.programID);
+  //     glContext.programID = programID;
+  //     glUseProgram(programID);
 
-//       glContext.shaderTimestamp = max(timestampVert, timestampFrag);
-//     }
-//   }
+  //     glContext.shaderTimestamp = max(timestampVert, timestampFrag);
+  //   }
+  // }
 
-//   glClearColor(119.0f / 255.0f, 33.0f / 255.0f, 111.0f / 255.0f, 1.0f);
-//   glClearDepth(0.0f);
-//   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//   glViewport(0, 0, input->screenSize.x, input->screenSize.y);
+  // glClearColor(119.0f / 255.0f, 33.0f / 255.0f, 111.0f / 255.0f, 1.0f);
+  // glClearDepth(0.0f);
+  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // glViewport(0, 0, input->screenSize.x, input->screenSize.y);
 
-//   // Copy screen size to the GPU
-//   {
-//     Vec2 screenSize = {(float)input->screenSize.x, (float)input->screenSize.y};
-//     glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
-//   }
+  // // Copy screen size to the GPU
+  // {
+  //   Vec2 screenSize = {(float)input->screenSize.x, (float)input->screenSize.y};
+  //   glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
+  // }
 
-//   // Copy Materials to the GPU
-//   {
-//     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, glContext.materialSBOID);
-//     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 
-//                     sizeof(Material) * renderData->materials.count,
-//                     renderData->materials.elements);
-//     renderData->materials.clear();
-//   }
+  // // Copy Materials to the GPU
+  // {
+  //   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, glContext.materialSBOID);
+  //   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 
+  //                   sizeof(Material) * renderData->materials.count,
+  //                   renderData->materials.elements);
+  //   renderData->materials.clear();
+  // }
 
-//   // Bind back the Transform Buffer
-//   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, glContext.transformSBOID);
+  // // Bind back the Transform Buffer
+  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, glContext.transformSBOID);
 
-//   // Game Pass
-//   {
-//     // Game Orthographic Projection
-//     {
-//       OrthographicCamera2D camera = renderData->gameCamera;
-//       Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
-//                                                     camera.position.x + camera.dimensions.x / 2.0f, 
-//                                                     camera.position.y - camera.dimensions.y / 2.0f, 
-//                                                     camera.position.y + camera.dimensions.y / 2.0f);
-//       glUniformMatrix4fv(glContext.orthoProjectionID, 1, GL_FALSE, &orthoProjection.ax);
-//     }
+  // // Game Pass
+  // {
+  //   // Game Orthographic Projection
+  //   {
+  //     OrthographicCamera2D camera = renderData->gameCamera;
+  //     Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
+  //                                                   camera.position.x + camera.dimensions.x / 2.0f, 
+  //                                                   camera.position.y - camera.dimensions.y / 2.0f, 
+  //                                                   camera.position.y + camera.dimensions.y / 2.0f);
+  //     glUniformMatrix4fv(glContext.orthoProjectionID, 1, GL_FALSE, &orthoProjection.ax);
+  //   }
 
-//     // Copy transforms to the GPU
-//     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->transforms.count,
-//                     renderData->transforms.elements);
+  //   // Copy transforms to the GPU
+  //   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->transforms.count,
+  //                   renderData->transforms.elements);
 
-//     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->transforms.count);
+  //   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->transforms.count);
 
-//     // Reset for next Frame
-//     renderData->transforms.count = 0;
-//   }
+  //   // Reset for next Frame
+  //   renderData->transforms.count = 0;
+  // }
 
-//   // UI Pass
-//   {
-//     // UI Orthographic Projection
-//     {
-//       OrthographicCamera2D camera = renderData->uiCamera;
-//       Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
-//                                                     camera.position.x + camera.dimensions.x / 2.0f, 
-//                                                     camera.position.y - camera.dimensions.y / 2.0f, 
-//                                                     camera.position.y + camera.dimensions.y / 2.0f);
-//       glUniformMatrix4fv(glContext.orthoProjectionID, 1, GL_FALSE, &orthoProjection.ax);
-//     }
+  // // UI Pass
+  // {
+  //   // UI Orthographic Projection
+  //   {
+  //     OrthographicCamera2D camera = renderData->uiCamera;
+  //     Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
+  //                                                   camera.position.x + camera.dimensions.x / 2.0f, 
+  //                                                   camera.position.y - camera.dimensions.y / 2.0f, 
+  //                                                   camera.position.y + camera.dimensions.y / 2.0f);
+  //     glUniformMatrix4fv(glContext.orthoProjectionID, 1, GL_FALSE, &orthoProjection.ax);
+  //   }
 
-//     // Copy transforms to the GPU
-//     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->uiTransforms.count,
-//                     renderData->uiTransforms.elements);
+  //   // Copy transforms to the GPU
+  //   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->uiTransforms.count,
+  //                   renderData->uiTransforms.elements);
 
-//     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->uiTransforms.count);
+  //   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->uiTransforms.count);
 
-//     // Reset for next Frame
-//     renderData->uiTransforms.count = 0;
-//   }
-// }
+  //   // Reset for next Frame
+  //   renderData->uiTransforms.count = 0;
+  // }
+}

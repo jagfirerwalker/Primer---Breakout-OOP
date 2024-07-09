@@ -88,7 +88,9 @@ struct Key
 
 struct Input
 {
-    IVec2 screenSize;
+    int screenSizeX;
+    float screenSizeY;
+    // IVec2 screenSize;
 
     // Screen
     IVec2 prevMousePos;

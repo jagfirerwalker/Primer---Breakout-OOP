@@ -1,23 +1,24 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      "name": "Linux Launch",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/breakout",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "MIMode": "gdb",
-      "miDebuggerPath": "${command:cmake.launchTargetPath}",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
-    },
+    
+    // {
+    //   "name": "Linux Launch",
+    //   "type": "cppdbg",
+    //   "request": "launch",
+    //   "program": "${workspaceFolder}/breakout",
+    //   "args": [],
+    //   "cwd": "${workspaceFolder}",
+    //   "MIMode": "gdb",
+    //   "miDebuggerPath": "${command:cmake.launchTargetPath}",
+    //   "setupCommands": [
+    //     {
+    //       "description": "Enable pretty-printing for gdb",
+    //       "text": "-enable-pretty-printing",
+    //       "ignoreFailures": true
+    //     }
+    //   ]
+    // },
     {
       "name": "Windows Launch",
       "type": "cppvsdbg",

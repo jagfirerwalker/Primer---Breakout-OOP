@@ -5,6 +5,7 @@
 // #include "sound.h"
 // # include "ui.h"
 
+
 #define APIENTRY
 #define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
@@ -54,7 +55,9 @@ int main()
     BumpAllocator transientStorage = make_bump_allocator(MB(50));
     BumpAllocator persistentStorage = make_bump_allocator(MB(256));
 
-    input = (Input*)bump_alloc(&persistentStorage, sizeof(Input));
+    // input = (Input*)bump_alloc(&persistentStorage, sizeof(Input));
+    input->screenSizeX = 1200;
+    input->screenSizeY = 720;
 
     if(!input)
     {
@@ -72,7 +75,7 @@ int main()
     {
         //Upate
         platform_update_window();
-        // gl_render(&transientStorage);
+        gl_render(&transientStorage);
 
         platform_swap_buffers();
 

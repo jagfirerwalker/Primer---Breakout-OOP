@@ -399,14 +399,14 @@ float sign(float x)
 //   return b;
 // }
 
-float approach(float current, float target, float increase)
-{
-  if(current < target)
-  {
-    return min(current + increase, target);
-  }
-  return max(current - increase, target);
-}
+// float approach(float current, float target, float increase)
+// {
+//   if(current < target)
+//   {
+//     return min(current + increase, target);
+//   }
+//   return max(current - increase, target);
+// }
 
 float lerp(float a, float b, float t)
 {

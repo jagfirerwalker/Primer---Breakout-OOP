@@ -27,12 +27,18 @@ void main()
   // -1/-1                1/-1
   vec2 vertices[6] =
   {
-    transform.pos,                                        // Top Left
-    vec2(transform.pos + vec2(0.0, transform.size.y)),    // Bottom Left
-    vec2(transform.pos + vec2(transform.size.x, 0.0)),    // Top Right
-    vec2(transform.pos + vec2(transform.size.x, 0.0)),    // Top Right
-    vec2(transform.pos + vec2(0.0, transform.size.y)),    // Bottom Left
-    transform.pos + transform.size                        // Bottom Right
+    vec2(-0.5, 0.5), // Top Left
+    vec2(-0.5, -0.5), // Bottom Left
+    vec2(0.5, 0.5), // Top Right
+    vec2(-0.5, -0.5), // Bottom Left
+    vec2(0.5, 0.5), // Bottom Right
+
+    // transform.pos,                                        // Top Left
+    // vec2(transform.pos + vec2(0.0, transform.size.y)),    // Bottom Left
+    // vec2(transform.pos + vec2(transform.size.x, 0.0)),    // Top Right
+    // vec2(transform.pos + vec2(transform.size.x, 0.0)),    // Top Right
+    // vec2(transform.pos + vec2(0.0, transform.size.y)),    // Bottom Left
+    // transform.pos + transform.size                        // Bottom Right
   };
 
   int left = transform.atlasOffset.x;
@@ -69,7 +75,8 @@ void main()
     vec2 vertexPos = vertices[gl_VertexID];
     // vertexPos.y = -vertexPos.y + screenSize.y;
     // vertexPos = 2.0 * (vertexPos / screenSize) - 1.0;
-    gl_Position = orthoProjection * vec4(vertexPos, transform.layer, 1.0);
+    // gl_Position = orthoProjection * vec4(vertexPos, transform.layer, 1.0);
+    gl_Position = vec4(vertices[gl_VertexID], 1.0, 1.0);
   }
 
   textureCoordsOut = textureCoords[gl_VertexID];
