@@ -8,7 +8,6 @@
 #include <xaudio2.h>
 #include "wglext.h"
 #include "input.h"
-#include <glcorearb.h>
 
 // #############################################################################
 //                           Windows Structures
@@ -341,4 +340,187 @@ void platform_update_window()
         DispatchMessageA(&message); // Calls the callback specified in the WNDCLASSA struct
     }
 
+    // Mouse Position
+    {
+        POINT point = {};
+        GetCursorPos(&point); // Get the cursor position
+        ScreenToClient(window, &point); // Convert the screen coordinates to client coordinates 
+
+        input->mousePos.x = point.x; // Set the mouse position x
+        input->mousePos.y = point.y; // Set the mouse position y
+
+        // Mouse Position World
+        // input->mousePosWorld = screen_to_world(input->mousePos); // Convert the screen position to world position
+    }
+}
+
+
+void* platform_load_gl_function(char* funName)
+{
+    PROC proc = wglGetProcAddress(funName);
+    if(!proc)
+    {
+        static HMODULE openglDLL = LoadLibraryA("opengl32.dll");
+        proc = GetProcAddress(openglDLL, funName);
+        if(!proc)
+        {
+            SM_ASSERT(false, "Failed to load gl function %s", "glCreateProgram");
+            return nullptr;
+        }
+    }
+
+    return (void*)proc;
+}
+
+void platform_swap_buffers()
+{
+    SwapBuffers(dc);
+}
+
+void platform_set_vsync(bool vSync)
+{
+    wglSwapIntervalEXT_ptr(vSync);
+}
+
+void* platform_load_dynamic_library(const char* dll)
+{
+    HMODULE result = LoadLibraryA(dll);
+    SM_ASSERT(result, "Failed to load dynamic library %s", dll);
+
+    return result;
+}
+
+void* platform_load_dynamic_function(void* dll, const char* funName)
+{
+    FARPROC proc = GetProcAddress((HMODULE)dll, funName);
+    SM_ASSERT(proc, "Failed to load function: %s from DLL", funName);
+    
+    return (void*)proc;
+}
+
+bool platform_free_dynamic_library(void* dll)
+{
+    BOOL freeResult = FreeLibrary((HMODULE)dll);
+    SM_ASSERT(freeResult, "Failed to FreeLibrary");
+
+    return (bool)freeResult;
+}
+
+// // void platform_fill_keycode_lookup_table()
+// {
+//   KeyCodeLookupTable[VK_LBUTTON] = KEY_MOUSE_LEFT;
+//   KeyCodeLookupTable[VK_MBUTTON] = KEY_MOUSE_MIDDLE;
+//   KeyCodeLookupTable[VK_RBUTTON] = KEY_MOUSE_RIGHT;
+  
+//   KeyCodeLookupTable['A'] = KEY_A;
+//   KeyCodeLookupTable['B'] = KEY_B;
+//   KeyCodeLookupTable['C'] = KEY_C;
+//   KeyCodeLookupTable['D'] = KEY_D;
+//   KeyCodeLookupTable['E'] = KEY_E;
+//   KeyCodeLookupTable['F'] = KEY_F;
+//   KeyCodeLookupTable['G'] = KEY_G;
+//   KeyCodeLookupTable['H'] = KEY_H;
+//   KeyCodeLookupTable['I'] = KEY_I;
+//   KeyCodeLookupTable['J'] = KEY_J;
+//   KeyCodeLookupTable['K'] = KEY_K;
+//   KeyCodeLookupTable['L'] = KEY_L;
+//   KeyCodeLookupTable['M'] = KEY_M;
+//   KeyCodeLookupTable['N'] = KEY_N;
+//   KeyCodeLookupTable['O'] = KEY_O;
+//   KeyCodeLookupTable['P'] = KEY_P;
+//   KeyCodeLookupTable['Q'] = KEY_Q;
+//   KeyCodeLookupTable['R'] = KEY_R;
+//   KeyCodeLookupTable['S'] = KEY_S;
+//   KeyCodeLookupTable['T'] = KEY_T;
+//   KeyCodeLookupTable['U'] = KEY_U;
+//   KeyCodeLookupTable['V'] = KEY_V;
+//   KeyCodeLookupTable['W'] = KEY_W;
+//   KeyCodeLookupTable['X'] = KEY_X;
+//   KeyCodeLookupTable['Y'] = KEY_Y;
+//   KeyCodeLookupTable['Z'] = KEY_Z;
+//   KeyCodeLookupTable['0'] = KEY_0;
+//   KeyCodeLookupTable['1'] = KEY_1;
+//   KeyCodeLookupTable['2'] = KEY_2;
+//   KeyCodeLookupTable['3'] = KEY_3;
+//   KeyCodeLookupTable['4'] = KEY_4;
+//   KeyCodeLookupTable['5'] = KEY_5;
+//   KeyCodeLookupTable['6'] = KEY_6;
+//   KeyCodeLookupTable['7'] = KEY_7;
+//   KeyCodeLookupTable['8'] = KEY_8;
+//   KeyCodeLookupTable['9'] = KEY_9;
+  
+//   KeyCodeLookupTable[VK_SPACE] = KEY_SPACE,
+//   KeyCodeLookupTable[VK_OEM_3] = KEY_TICK,
+//   KeyCodeLookupTable[VK_OEM_MINUS] = KEY_MINUS,
+
+//   KeyCodeLookupTable[VK_OEM_PLUS] = KEY_EQUAL,
+//   KeyCodeLookupTable[VK_OEM_4] = KEY_LEFT_BRACKET,
+//   KeyCodeLookupTable[VK_OEM_6] = KEY_RIGHT_BRACKET,
+//   KeyCodeLookupTable[VK_OEM_1] = KEY_SEMICOLON,
+//   KeyCodeLookupTable[VK_OEM_7] = KEY_QUOTE,
+//   KeyCodeLookupTable[VK_OEM_COMMA] = KEY_COMMA,
+//   KeyCodeLookupTable[VK_OEM_PERIOD] = KEY_PERIOD,
+//   KeyCodeLookupTable[VK_OEM_2] = KEY_FORWARD_SLASH,
+//   KeyCodeLookupTable[VK_OEM_5] = KEY_BACKWARD_SLASH,
+//   KeyCodeLookupTable[VK_TAB] = KEY_TAB,
+//   KeyCodeLookupTable[VK_ESCAPE] = KEY_ESCAPE,
+//   KeyCodeLookupTable[VK_PAUSE] = KEY_PAUSE,
+//   KeyCodeLookupTable[VK_UP] = KEY_UP,
+//   KeyCodeLookupTable[VK_DOWN] = KEY_DOWN,
+//   KeyCodeLookupTable[VK_LEFT] = KEY_LEFT,
+//   KeyCodeLookupTable[VK_RIGHT] = KEY_RIGHT,
+//   KeyCodeLookupTable[VK_BACK] = KEY_BACKSPACE,
+//   KeyCodeLookupTable[VK_RETURN] = KEY_RETURN,
+//   KeyCodeLookupTable[VK_DELETE] = KEY_DELETE,
+//   KeyCodeLookupTable[VK_INSERT] = KEY_INSERT,
+//   KeyCodeLookupTable[VK_HOME] = KEY_HOME,
+//   KeyCodeLookupTable[VK_END] = KEY_END,
+//   KeyCodeLookupTable[VK_PRIOR] = KEY_PAGE_UP,
+//   KeyCodeLookupTable[VK_NEXT] = KEY_PAGE_DOWN,
+//   KeyCodeLookupTable[VK_CAPITAL] = KEY_CAPS_LOCK,
+//   KeyCodeLookupTable[VK_NUMLOCK] = KEY_NUM_LOCK,
+//   KeyCodeLookupTable[VK_SCROLL] = KEY_SCROLL_LOCK,
+//   KeyCodeLookupTable[VK_APPS] = KEY_MENU,
+  
+//   KeyCodeLookupTable[VK_SHIFT] = KEY_SHIFT,
+//   KeyCodeLookupTable[VK_LSHIFT] = KEY_SHIFT,
+//   KeyCodeLookupTable[VK_RSHIFT] = KEY_SHIFT,
+  
+//   KeyCodeLookupTable[VK_CONTROL] = KEY_CONTROL,
+//   KeyCodeLookupTable[VK_LCONTROL] = KEY_CONTROL,
+//   KeyCodeLookupTable[VK_RCONTROL] = KEY_CONTROL,
+  
+//   KeyCodeLookupTable[VK_MENU] = KEY_ALT,
+//   KeyCodeLookupTable[VK_LMENU] = KEY_ALT,
+//   KeyCodeLookupTable[VK_RMENU] = KEY_ALT,
+  
+//   KeyCodeLookupTable[VK_F1] = KEY_F1;
+//   KeyCodeLookupTable[VK_F2] = KEY_F2;
+//   KeyCodeLookupTable[VK_F3] = KEY_F3;
+//   KeyCodeLookupTable[VK_F4] = KEY_F4;
+//   KeyCodeLookupTable[VK_F5] = KEY_F5;
+//   KeyCodeLookupTable[VK_F6] = KEY_F6;
+//   KeyCodeLookupTable[VK_F7] = KEY_F7;
+//   KeyCodeLookupTable[VK_F8] = KEY_F8;
+//   KeyCodeLookupTable[VK_F9] = KEY_F9;
+//   KeyCodeLookupTable[VK_F10] = KEY_F10;
+//   KeyCodeLookupTable[VK_F11] = KEY_F11;
+//   KeyCodeLookupTable[VK_F12] = KEY_F12;
+  
+//   KeyCodeLookupTable[VK_NUMPAD0] = KEY_NUMPAD_0;
+//   KeyCodeLookupTable[VK_NUMPAD1] = KEY_NUMPAD_1;
+//   KeyCodeLookupTable[VK_NUMPAD2] = KEY_NUMPAD_2;
+//   KeyCodeLookupTable[VK_NUMPAD3] = KEY_NUMPAD_3;
+//   KeyCodeLookupTable[VK_NUMPAD4] = KEY_NUMPAD_4;
+//   KeyCodeLookupTable[VK_NUMPAD5] = KEY_NUMPAD_5;
+//   KeyCodeLookupTable[VK_NUMPAD6] = KEY_NUMPAD_6;
+//   KeyCodeLookupTable[VK_NUMPAD7] = KEY_NUMPAD_7;
+//   KeyCodeLookupTable[VK_NUMPAD8] = KEY_NUMPAD_8;
+//   KeyCodeLookupTable[VK_NUMPAD9] = KEY_NUMPAD_9;
+// }
+
+
+void platform_sleep(unsigned int ms)
+{
+    Sleep(ms);
 }
