@@ -4,12 +4,16 @@
         {
             "label": "Build",
             "type": "shell",
+<<<<<<< Updated upstream
             "windows": {
                 "command": "sh build.sh"
             },
             "linux": {
                 "command": "./build.sh"
             },
+=======
+            "command": "sh build.sh",
+>>>>>>> Stashed changes
             "group": "build"
         },
         {
