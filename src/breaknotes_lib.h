@@ -11,6 +11,10 @@
 // Used to get the edit timestamp of files
 #include <sys/stat.h>
 
+#include <cstdarg>
+#include <cstdio>
+
+
 // #############################################################################
 //                           Defines
 // #############################################################################
@@ -53,51 +57,47 @@ enum TextColor
 
 
 template <typename ...Args>
-void _log(char* prefix, char* msg, TextColor textColor, Args... args)
+void _log(const char* prefix, const char* msg, TextColor textColor, int dummy, Args... args)
 {
-  static char* TextColorTable[TEXT_COLOR_COUNT] = 
-  {    
-    "\x1b[30m", // TEXT_COLOR_BLACK
-    "\x1b[31m", // TEXT_COLOR_RED
-    "\x1b[32m", // TEXT_COLOR_GREEN
-    "\x1b[33m", // TEXT_COLOR_YELLOW
-    "\x1b[34m", // TEXT_COLOR_BLUE
-    "\x1b[35m", // TEXT_COLOR_MAGENTA
-    "\x1b[36m", // TEXT_COLOR_CYAN
-    "\x1b[37m", // TEXT_COLOR_WHITE
-    "\x1b[90m", // TEXT_COLOR_BRIGHT_BLACK
-    "\x1b[91m", // TEXT_COLOR_BRIGHT_RED
-    "\x1b[92m", // TEXT_COLOR_BRIGHT_GREEN
-    "\x1b[93m", // TEXT_COLOR_BRIGHT_YELLOW
-    "\x1b[94m", // TEXT_COLOR_BRIGHT_BLUE
-    "\x1b[95m", // TEXT_COLOR_BRIGHT_MAGENTA
-    "\x1b[96m", // TEXT_COLOR_BRIGHT_CYAN
-    "\x1b[97m", // TEXT_COLOR_BRIGHT_WHITE
-  };
-
-  char formatBuffer[8192] = {};
-  sprintf(formatBuffer, "%s %s %s \033[0m", TextColorTable[textColor], prefix, msg);
-
-  char textBuffer[8912] = {};
-  sprintf(textBuffer, formatBuffer, args...);
-
-  puts(textBuffer);
+    static const char* TextColorTable[TEXT_COLOR_COUNT] =
+    {    
+        "\x1b[30m", // TEXT_COLOR_BLACK
+        "\x1b[31m", // TEXT_COLOR_RED
+        "\x1b[32m", // TEXT_COLOR_GREEN
+        "\x1b[33m", // TEXT_COLOR_YELLOW
+        "\x1b[34m", // TEXT_COLOR_BLUE
+        "\x1b[35m", // TEXT_COLOR_MAGENTA
+        "\x1b[36m", // TEXT_COLOR_CYAN
+        "\x1b[37m", // TEXT_COLOR_WHITE
+        "\x1b[90m", // TEXT_COLOR_BRIGHT_BLACK
+        "\x1b[91m", // TEXT_COLOR_BRIGHT_RED
+        "\x1b[92m", // TEXT_COLOR_BRIGHT_GREEN
+        "\x1b[93m", // TEXT_COLOR_BRIGHT_YELLOW
+        "\x1b[94m", // TEXT_COLOR_BRIGHT_BLUE
+        "\x1b[95m", // TEXT_COLOR_BRIGHT_MAGENTA
+        "\x1b[96m", // TEXT_COLOR_BRIGHT_CYAN
+        "\x1b[97m", // TEXT_COLOR_BRIGHT_WHITE
+    };
+    
+    char formatBuffer[8192];
+    snprintf(formatBuffer, sizeof(formatBuffer), "%s%s %s\033[0m", TextColorTable[textColor], prefix, msg);
+    
+    char textBuffer[8912];
+    snprintf(textBuffer, sizeof(textBuffer), formatBuffer, args...);
+    
+    puts(textBuffer);
 }
 
-
-#define SM_TRACE(msg, ...) _log("TRACE: ", msg, TEXT_COLOR_GREEN, ##__VA_ARGS__);
-#define SM_WARN(msg, ...) _log("WARN: ", msg, TEXT_COLOR_YELLOW, ##__VA_ARGS__);
-#define SM_ERROR(msg, ...) _log("ERROR: ", msg, TEXT_COLOR_RED, ##__VA_ARGS__);
-
-#define SM_ASSERT(x, msg, ...)    \
-{                                 \
-  if(!(x))                        \
-  {                               \
-    SM_ERROR(msg, ##__VA_ARGS__); \
-    DEBUG_BREAK();                \
-    SM_ERROR("Assertion HIT!")    \
-  }                               \
-}
+#define SM_TRACE(msg, ...) _log("TRACE: ", msg, TEXT_COLOR_GREEN, 0, ##__VA_ARGS__)
+#define SM_WARN(msg, ...) _log("WARN:  ", msg, TEXT_COLOR_YELLOW, 0, ##__VA_ARGS__)
+#define SM_ERROR(msg, ...) _log("ERROR: ", msg, TEXT_COLOR_RED, 0, ##__VA_ARGS__)
+#define SM_ASSERT(condition, message, ...) \
+    do { \
+        if (!(condition)) { \
+            _log("ASSERT: ", message, TEXT_COLOR_RED, 0, ##__VA_ARGS__); \
+            __debugbreak(); \
+        } \
+    } while(0)
 
 
 // #############################################################################
@@ -149,37 +149,41 @@ char* bump_alloc(BumpAllocator* bumpAllocator, size_t size)
 // #############################################################################
 //                           File I/O
 // #############################################################################
-long long get_timestamp(char* file)
+long long get_timestamp(const char* file)
 {
   struct stat file_stat = {};
   stat(file, &file_stat);
   return file_stat.st_mtime;
 }
 
-bool file_exists(char* filePath)
+bool file_exists(const char* filePath)
 {
   SM_ASSERT(filePath, "No filePath supplied!");
 
-  auto file = fopen(filePath, "rb");
-  if(!file)
+  FILE* file = nullptr;
+  errno_t err = fopen_s(&file, filePath, "rb");
+  if(err != 0 || !file)
   {
+    SM_ERROR("Failed opening File: %s", filePath);
     return false;
   }
+  
   fclose(file);
 
   return true;
 }
 
-long get_file_size(char* filePath)
+long get_file_size(const char* filePath)
 {
   SM_ASSERT(filePath, "No filePath supplied!");
 
   long fileSize = 0;
-  auto file = fopen(filePath, "rb");
-  if(!file)
+
+  FILE* file = nullptr;
+  errno_t err = fopen_s(&file, filePath, "rb");
+  if(err != 0 || !file)
   {
-    SM_ERROR("Failed opening File: %s", filePath);
-    return 0;
+    return false;
   }
 
   fseek(file, 0, SEEK_END);
@@ -195,15 +199,16 @@ long get_file_size(char* filePath)
 * memory and therefore want more control over where it 
 * is allocated
 */
-char* read_file(char* filePath, int* fileSize, char* buffer)
+char* read_file(const char* filePath, int* fileSize, char* buffer)
 {
   SM_ASSERT(filePath, "No filePath supplied!");
   SM_ASSERT(fileSize, "No fileSize supplied!");
   SM_ASSERT(buffer, "No buffer supplied!");
 
   *fileSize = 0;
-  auto file = fopen(filePath, "rb");
-  if(!file)
+  FILE* file = nullptr;
+  errno_t err = fopen_s(&file, filePath, "rb");
+  if(err != 0 || !file)
   {
     SM_ERROR("Failed opening File: %s", filePath);
     return nullptr;
@@ -240,8 +245,9 @@ void write_file(char* filePath, char* buffer, int size)
 {
   SM_ASSERT(filePath, "No filePath supplied!");
   SM_ASSERT(buffer, "No buffer supplied!");
-  auto file = fopen(filePath, "wb");
-  if(!file)
+  FILE* file = nullptr;
+  errno_t err = fopen_s(&file, filePath, "wb");
+  if(err != 0 || !file)
   {
     SM_ERROR("Failed opening File: %s", filePath);
     return;
@@ -256,8 +262,9 @@ bool copy_file(char* fileName, char* outputName, char* buffer)
   int fileSize = 0;
   char* data = read_file(fileName, &fileSize, buffer);
 
-  auto outputFile = fopen(outputName, "wb");
-  if(!outputFile)
+  FILE* outputFile = nullptr;
+  errno_t err = fopen_s(&outputFile, outputName, "wb");
+  if(err != 0 || !outputFile)
   {
     SM_ERROR("Failed opening File: %s", outputName);
     return false;

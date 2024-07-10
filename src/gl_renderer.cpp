@@ -1,19 +1,7 @@
 #include "gl_renderer.h"
 #include "breaknotes_lib.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-    #ifndef APIENTRY
-        #define APIENTRY __stdcall
-    #endif
-#else
-    #define APIENTRY
-#endif
 
-#ifndef GL_GLECT_PROTOTYPES
-    #define GL_GLECT_PROTOTYPES
-#endif
-
-#include "../third_party/glcorearb.h"
 
 // #############################################################################
 //                           OpenGL Structs

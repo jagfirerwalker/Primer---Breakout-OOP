@@ -2,6 +2,7 @@
 #include "input.h"
 #include "platform.h"
 
+
 // Get the function pointer for the OpenGL function
 #if defined(_WIN32) || defined(_WIN64)
     #include "win32_platform.cpp"
@@ -12,8 +13,8 @@
     #define APIENTRY
 #endif
 
-#ifndef GL_GLECT_PROTOTYPES
-    #define GL_GLECT_PROTOTYPES
+#ifndef GL_GLEXT_PROTOTYPES
+    #define GL_GLEXT_PROTOTYPES
 #endif
 
 #include "../third_party/glcorearb.h"

@@ -1,3 +1,5 @@
+#ifndef WIN32_PLATFORM_H
+#define WIN32_PLATFORM_H
 
 #include "platform.h"
 #include "breaknotes_lib.h"
@@ -50,7 +52,7 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT msg,
   return result;
 }
 
-bool platform_create_window(int width, int height, char* title)
+bool platform_create_window(int width, int height, const char* title)
 {
   HINSTANCE instance = GetModuleHandleA(0);
 
@@ -290,4 +292,4 @@ void platform_swap_buffers()
 
 
 
-
+#endif // WIN32_PLATFORM_H
