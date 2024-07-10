@@ -1,6 +1,6 @@
 #pragma once
 
-#include "breaknotes_lib.h"
+#include "../src/breaknotes_lib.h"
 
 // ###########################################################
 //                      Input Structs
@@ -9,7 +9,7 @@ struct Input
 {
     int screenSizeX;
     int screenSizeY;
-}
+};
 
 
 // #############################################################################

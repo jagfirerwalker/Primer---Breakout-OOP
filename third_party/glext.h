@@ -34,7 +34,7 @@ extern "C" {
 
 #define GL_GLEXT_VERSION 20230705
 
-#include <KHR/khrplatform.h>
+#include "KHR/khrplatform.h"
 #include "glcorearb.h"
 
 /* Generated C header for:

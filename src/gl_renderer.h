@@ -1,7 +1,7 @@
 #pragma once
 
-#include "glcorearb.h"
-#include "platform.h"
+#include "../third_party/glcorearb.h"
+#include "win32_platform.cpp"
 
 // #############################################################################
 //                           OpenGL Function Pointers
@@ -60,11 +60,42 @@ static PFNGLDELETESHADERPROC glDeleteShader_ptr;
 static PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced_ptr;
 static PFNGLGENERATEMIPMAPPROC glGenerateMipmap_ptr;
 static PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback_ptr;
-
+static PFNGLENABLEPROC glEnable_ptr;
+static PFNGLDEPTHFUNCPROC glDepthFunc_ptr;
+static PFNGLTEXIMAGE2DPROC glTexImage2D_ptr;
+static PFNGLTEXPARAMETERIPROC glTexParameteri_ptr;
+static PFNGLTEXPARAMETERFVPROC glTexParameterfv_ptr;
+static PFNGLCLEARPROC glClear_ptr;
+static PFNGLCLEARCOLORPROC glClearColor_ptr;
+static PFNGLREADBUFFERPROC glReadBuffer_ptr;
+static PFNGLDEPTHMASKPROC glDepthMask_ptr;
+static PFNGLDISABLEPROC glDisable_ptr;
+static PFNGLSCISSORPROC glScissor_ptr;
+static PFNGLVIEWPORTPROC glViewport_ptr;
+static PFNGLCULLFACEPROC glCullFace_ptr;
+static PFNGLBLENDFUNCPROC glBlendFunc_ptr;
+static PFNGLFRONTFACEPROC glFrontFace_ptr;
+static PFNGLCLEARDEPTHPROC glClearDepth_ptr;
 
 void load_gl_functions()
 {
   // Load OpenGL Functions from the Operating System / Graphics Card
+  glClearDepth_ptr = (PFNGLCLEARDEPTHPROC)platform_load_gl_function("glClearDepth");
+  glTexImage2D_ptr = (PFNGLTEXIMAGE2DPROC)platform_load_gl_function("glTexImage2D");
+  glTexParameteri_ptr = (PFNGLTEXPARAMETERIPROC)platform_load_gl_function("glTexParameteri");
+  glTexParameterfv_ptr = (PFNGLTEXPARAMETERFVPROC)platform_load_gl_function("glTexParameterfv");
+  glClear_ptr = (PFNGLCLEARPROC)platform_load_gl_function("glClear");
+  glClearColor_ptr = (PFNGLCLEARCOLORPROC)platform_load_gl_function("glClearColor");
+  glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
+  glDepthMask_ptr = (PFNGLDEPTHMASKPROC)platform_load_gl_function("glDepthMask");
+  glDisable_ptr = (PFNGLDISABLEPROC)platform_load_gl_function("glDisable");
+  glScissor_ptr = (PFNGLSCISSORPROC)platform_load_gl_function("glScissor");
+  glViewport_ptr = (PFNGLVIEWPORTPROC)platform_load_gl_function("glViewport");
+  glCullFace_ptr = (PFNGLCULLFACEPROC)platform_load_gl_function("glCullFace");
+  glBlendFunc_ptr = (PFNGLBLENDFUNCPROC)platform_load_gl_function("glBlendFunc");
+  glFrontFace_ptr = (PFNGLFRONTFACEPROC)platform_load_gl_function("glFrontFace");
+  glDepthFunc_ptr = (PFNGLDEPTHFUNCPROC)platform_load_gl_function("glDepthFunc");
+  glEnable_ptr = (PFNGLENABLEPROC)platform_load_gl_function("glEnable");
   glCreateProgram_ptr = (PFNGLCREATEPROGRAMPROC)platform_load_gl_function("glCreateProgram");
   glDeleteTextures_ptr = (PFNGLDELETETEXTURESPROC)platform_load_gl_function("glDeleteTextures");
   glGenTextures_ptr = (PFNGLGENTEXTURESPROC)platform_load_gl_function("glGenTextures");
@@ -386,4 +417,88 @@ void glGenerateMipmap(GLenum target)
 void glDebugMessageCallback (GLDEBUGPROC callback, const void *userParam)
 {
   glDebugMessageCallback_ptr(callback, userParam);
+}
+
+// Add this with the other wrapper functions
+void glEnable(GLenum cap)
+{
+    glEnable_ptr(cap);
+}
+
+void glDepthFunc(GLenum func)
+{
+    glDepthFunc_ptr(func);
+}
+
+GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
+                                  GLsizei height, GLint border, GLenum format, GLenum type,
+                                  const void *pixels)
+{
+  glTexImage2D_ptr(target, level, internalformat, width, height,
+                   border, format, type, pixels);
+}
+
+GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param)
+{
+  glTexParameteri_ptr(target, pname, param);
+}
+
+GLAPI void APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params)
+{
+  glTexParameterfv_ptr(target, pname, params);
+}
+
+GLAPI void APIENTRY glClear (GLbitfield mask)
+{
+  glClear_ptr(mask);
+}
+
+GLAPI void APIENTRY glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+  glClearColor_ptr(red, green, blue, alpha);
+}
+
+void glReadBuffer(GLenum mode)
+{
+    glReadBuffer_ptr(mode);
+}
+
+void glDepthMask(GLboolean flag)
+{
+    glDepthMask_ptr(flag);
+}
+
+void glDisable(GLenum cap)
+{
+    glDisable_ptr(cap);
+}
+
+void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    glScissor_ptr(x, y, width, height);
+}
+
+void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    glViewport_ptr(x, y, width, height);
+}
+
+void glCullFace(GLenum mode)
+{
+    glCullFace_ptr(mode);
+}
+
+void glBlendFunc(GLenum sfactor, GLenum dfactor)
+{
+    glBlendFunc_ptr(sfactor, dfactor);
+}
+
+void glFrontFace(GLenum mode)
+{
+    glFrontFace_ptr(mode);
+}
+
+void glClearDepth(GLdouble depth)
+{
+    glClearDepth_ptr(depth);
 }
