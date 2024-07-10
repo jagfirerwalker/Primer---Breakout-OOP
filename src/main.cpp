@@ -1,5 +1,6 @@
 #include "breaknotes_lib.h"
 #include "input.h"
+#include "game.cpp"
 #include "platform.h"
 
 
@@ -36,6 +37,7 @@ int main()
     {
         // Update
         platform_update_window();
+        // update_game();
         gl_render();
         platform_swap_buffers();
     }
