@@ -19,7 +19,7 @@ void update_game()
   {
     for(int y = 0; y < 10; y++)
     {
-      draw_sprite(SPRITE_DICE, {x * 100.0f, y * 100.0f}, {100.0f, 100.0f});
+      draw_sprite(SPRITE_DICE, { x * 100.0f, y * 100.0f}, {100.0f, 100.0f});
     }
   }
 }

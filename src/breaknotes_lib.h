@@ -1,16 +1,10 @@
-#pragma once
+#pragma once // Ensures this header is only included once
 
+// Standard library includes
 #include <stdio.h>
-
-// This is to get malloc
-#include <stdlib.h>
-
-// This is to get memset
-#include <string.h>
-
-// Used to get the edit timestamp of files
-#include <sys/stat.h>
-
+#include <stdlib.h>  // For malloc
+#include <string.h>  // For memset
+#include <sys/stat.h>  // For getting file timestamps
 #include <cstdarg>
 #include <cstdio>
 
@@ -18,6 +12,8 @@
 // #############################################################################
 //                           Defines
 // #############################################################################
+
+// Cross-platform debug break macro
 #ifdef _WIN32
 #define DEBUG_BREAK() __debugbreak()
 #elif __linux__
@@ -26,6 +22,7 @@
 #define DEBUG_BREAK() __builtin_trap()
 #endif
 
+// Utility macros
 #define BIT(x) 1 << (x)
 #define KB(x) ((unsigned long long)1024 * x)
 #define MB(x) ((unsigned long long)1024 * KB(x))
@@ -34,6 +31,8 @@
 // #############################################################################
 //                           Logging
 // #############################################################################
+
+// Enum for text colors in console output
 enum TextColor
 {  
   TEXT_COLOR_BLACK,
@@ -55,7 +54,7 @@ enum TextColor
   TEXT_COLOR_COUNT
 };
 
-
+// Template function for logging with color
 template <typename ...Args>
 void _log(const char* prefix, const char* msg, TextColor textColor, int dummy, Args... args)
 {
@@ -88,6 +87,7 @@ void _log(const char* prefix, const char* msg, TextColor textColor, int dummy, A
     puts(textBuffer);
 }
 
+// Macros for different log levels
 #define SM_TRACE(msg, ...) _log("TRACE: ", msg, TEXT_COLOR_GREEN, 0, ##__VA_ARGS__)
 #define SM_WARN(msg, ...) _log("WARN:  ", msg, TEXT_COLOR_YELLOW, 0, ##__VA_ARGS__)
 #define SM_ERROR(msg, ...) _log("ERROR: ", msg, TEXT_COLOR_RED, 0, ##__VA_ARGS__)
@@ -103,6 +103,8 @@ void _log(const char* prefix, const char* msg, TextColor textColor, int dummy, A
 // #############################################################################
 //                           Bump Allocator
 // #############################################################################
+
+// Bump Allocator for simple memory management
 struct BumpAllocator
 {
   size_t capacity;
@@ -110,6 +112,7 @@ struct BumpAllocator
   char* memory;
 };
 
+// Functions for Bump Allocator
 BumpAllocator make_bump_allocator(size_t size)
 {
   BumpAllocator ba = {};
