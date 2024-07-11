@@ -49,6 +49,14 @@ int main()
         return -1;
     }
 
+    gameState = (GameState*)bump_alloc(&persistentStorage, sizeof(GameState));
+
+    if(!gameState)
+    {
+        SM_ERROR("Failed to allocate GameState");
+        return -1;
+    }
+
     renderData = (RenderData*)bump_alloc(&persistentStorage, sizeof(RenderData));
     if(!renderData)
     {
@@ -67,7 +75,7 @@ int main()
         reload_game_dll(&transientStorage);
         // Update
         platform_update_window();
-        update_game(renderData, input);
+        update_game(gameState, renderData, input);
         gl_render();
         platform_swap_buffers();
 
@@ -77,9 +85,9 @@ int main()
     return 0;
 }
 
-void update_game(RenderData* renderDataIn, Input* inputIn)
+void update_game(GameState* gameStateIn, RenderData* renderDataIn, Input* inputIn)
 {
-    update_game_ptr(renderDataIn, inputIn);
+    update_game_ptr(gameStateIn, renderDataIn, inputIn);
 }
 
 void reload_game_dll(BumpAllocator* transientStorage)
