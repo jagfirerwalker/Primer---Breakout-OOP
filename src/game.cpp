@@ -31,8 +31,8 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
     gameState->initialized = true;
   }
 
-  renderData->gameCamera.position.x = 160;
-  renderData->gameCamera.position.y = 90;
+  renderData->gameCamera.position.x = 0;
+  renderData->gameCamera.position.y = 0;
 
   draw_sprite(SPRITE_DICE, { 0.0f, 0.0f});
   
