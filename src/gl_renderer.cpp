@@ -1,5 +1,4 @@
 #include "gl_renderer.h"
-#include "breaknotes_lib.h"
 
 // To Load PNG Files
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,7 +22,6 @@ struct GLContext
   GLuint screenSizeID;
 };
 
-
 // #############################################################################
 //                           OpenGL Globals
 // #############################################################################
@@ -32,19 +30,21 @@ static GLContext glContext;
 // #############################################################################
 //                           OpenGL Functions
 // #############################################################################
-static void APIENTRY gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user)
+static void APIENTRY gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                         GLsizei length, const GLchar* message, const void* user)
 {
-    if(severity == GL_DEBUG_SEVERITY_LOW ||
-       severity == GL_DEBUG_SEVERITY_MEDIUM ||
-       severity == GL_DEBUG_SEVERITY_HIGH)
-       {
-        SM_ASSERT(false, "OpenGL Error: %s", message);
-       }
-       else
-       {
-        SM_TRACE((char*)message);
-       }
+  if(severity == GL_DEBUG_SEVERITY_LOW || 
+     severity == GL_DEBUG_SEVERITY_MEDIUM ||
+     severity == GL_DEBUG_SEVERITY_HIGH)
+  {
+    SM_ASSERT(false, "OpenGL Error: %s", message);
+  }
+  else
+  {
+    SM_TRACE((char*)message);
+  }
 }
+
 
 bool gl_init(BumpAllocator* transientStorage)
 {
@@ -61,7 +61,7 @@ bool gl_init(BumpAllocator* transientStorage)
   char* vertShader = read_file("assets/shaders/quad.vert", &fileSize, transientStorage);
   char* fragShader = read_file("assets/shaders/quad.frag", &fileSize, transientStorage);
 
-  if (!vertShader || !fragShader)
+  if(!vertShader || !fragShader)
   {
     SM_ASSERT(false, "Failed to load shaders");
     return false;
@@ -73,29 +73,29 @@ bool gl_init(BumpAllocator* transientStorage)
   glCompileShader(vertShaderID);
   glCompileShader(fragShaderID);
 
-  // Test if the Vertex Shader complided successfully
+  // Test if Vertext Shader compiled successfully 
   {
     int success;
     char shaderLog[2048] = {};
 
     glGetShaderiv(vertShaderID, GL_COMPILE_STATUS, &success);
-    if (!success)
+    if(!success)
     {
       glGetShaderInfoLog(vertShaderID, 2048, 0, shaderLog);
-      SM_ASSERT(false, "Vertex Shader Compilation Failed: %s", shaderLog);
+      SM_ASSERT(false, "Failed to compile Vertex Shaders %s", shaderLog);
     }
   }
 
-  // Test if the Fragment Shader compiled successfully
+  // Test if Fragment Shader compiled successfully 
   {
     int success;
     char shaderLog[2048] = {};
 
     glGetShaderiv(fragShaderID, GL_COMPILE_STATUS, &success);
-    if (!success)
+    if(!success)
     {
       glGetShaderInfoLog(fragShaderID, 2048, 0, shaderLog);
-      SM_ASSERT(false, "Fragment Shader Compilation Failed: %s", shaderLog);
+      SM_ASSERT(false, "Failed to compile Vertex Shaders %s", shaderLog);
     }
   }
 
@@ -109,16 +109,15 @@ bool gl_init(BumpAllocator* transientStorage)
   glDeleteShader(vertShaderID);
   glDeleteShader(fragShaderID);
 
-  // This has to be done, otherwise the shaders will not work
+  // This has to be done, otherwise OpenGL will not draw anything
   GLuint VAO;
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
 
-  // Texture loading using STBI
+  // Texture Loading using STBI
   {
     int width, height, channels;
-    char* data =  (char*)stbi_load(TEXTURE_PATH, &width, &height, &channels, 4);
-
+    char* data = (char*)stbi_load(TEXTURE_PATH, &width, &height, &channels, 4);
     if(!data)
     {
       SM_ASSERT(false, "Failed to load texture");
@@ -157,7 +156,7 @@ bool gl_init(BumpAllocator* transientStorage)
   {
     glContext.screenSizeID = glGetUniformLocation(glContext.programID, "screenSize");
   }
-
+  
   // sRGB output (even if input texture is non-sRGB -> don't rely on texture used)
   // Your font is not using sRGB, for example (not that it matters there, because no actual color is sampled from it)
   // But this could prevent some future bug when you start mixing different types of textures
@@ -165,8 +164,7 @@ bool gl_init(BumpAllocator* transientStorage)
   glEnable(GL_FRAMEBUFFER_SRGB);
   glDisable(0x809D); // disable multisampling
 
-
-  // Depth testing
+  // Depth Tesing
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GREATER);
 
