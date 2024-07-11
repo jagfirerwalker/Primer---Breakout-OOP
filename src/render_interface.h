@@ -28,7 +28,7 @@ struct RenderData
 // #############################################################################
 //                           Renderer Globals
 // #############################################################################
-static RenderData renderData; // Global render data instance
+static RenderData* renderData; // Global render data instance
 
 // #############################################################################
 //                           Renderer Functions
@@ -45,5 +45,5 @@ void draw_sprite(SpriteID spriteID, Vec2 pos, Vec2 size)
   transform.atlasOffset = sprite.atlasOffset;
   transform.spriteSize = sprite.spriteSize;
 
-  renderData.transforms[renderData.transformCount++] = transform;
+  renderData->transforms[renderData->transformCount++] = transform;
 }
