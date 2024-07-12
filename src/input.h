@@ -113,7 +113,7 @@ static Input* input;
 bool key_pressed_this_frame(KeyCodeID keyCode)
 {
     Key key = input->keys[keyCode];
-    bool result = key.isDown && key.halfTransitionCount == 1 || key.halfTransitionCount > 1;
+    bool result = key.isDown && key.halfTransitionCount == 1 || key.halfTransitionCount > 1; // key if key is down is true and half transition count is 1, or if half transition count is greater than 1. 
     return result;
 }
 
