@@ -6,7 +6,6 @@
 // #############################################################################
 //                           Renderer Constants
 // #############################################################################
-constexpr int MAX_TRANSFORMS = 1000; // Maximum number of transforms allowed
 
 // #############################################################################
 //                           Renderer Structs
@@ -31,8 +30,7 @@ struct RenderData
 {
   OrthographicCamera2D gameCamera;      // Camera used to render the game
   OrthographicCamera2D uiCamera;        // Camera used to render the UI
-  int transformCount;                    // Number of transforms currently in use
-  Transform transforms[MAX_TRANSFORMS];  // Array of transforms
+  Array<Transform, 1000> transforms;     // Array of transforms to render
 };
 
 // #############################################################################
@@ -41,9 +39,45 @@ struct RenderData
 static RenderData* renderData; // Global render data instance
 
 // #############################################################################
+//                           Renderer Untility
+// #############################################################################
+
+IVec2 screen_to_world(IVec2 screenPos)
+{
+  OrthographicCamera2D camera = renderData->gameCamera;
+
+  int xPos = (float)screenPos.x / (float)input->screenSize.x * camera.dimensions.x;
+
+  // Offset using dimensions and position
+  xPos += -camera.dimensions.x / 2.0f + camera.position.x;
+
+  int yPos = (float)screenPos.y / (float)input->screenSize.y * camera.dimensions.y;
+
+  // Offset using dimensions and position
+  yPos += camera.dimensions.y / 2.0f + camera.position.y;
+
+  return {xPos, yPos};
+}
+
+// #############################################################################
 //                           Renderer Functions
 // #############################################################################
 
+void draw_quad(Transform  transform)
+{
+  renderData->transforms.add(transform);
+}
+
+void draw_quad(Vec2 pos, Vec2 size)
+{
+  Transform transform = {};
+  transform.pos = pos - size / 2.0f;
+  transform.size = size;
+  transform.atlasOffset = {0, 0};
+  transform.spriteSize = {1, 1};
+
+  renderData->transforms.add(transform);
+}
 
 void draw_sprite(SpriteID spriteID, Vec2 pos)
 {
@@ -55,5 +89,10 @@ void draw_sprite(SpriteID spriteID, Vec2 pos)
   transform.atlasOffset = sprite.atlasOffset;
   transform.spriteSize = sprite.spriteSize;
 
-  renderData->transforms[renderData->transformCount++] = transform;
+  renderData->transforms.add(transform);
+}
+
+void draw_sprite(SpriteID spriteID, IVec2 pos)
+{
+  draw_sprite(spriteID, vec_2(pos));
 }

@@ -20,6 +20,7 @@
 #endif
 
 #include "../third_party/glcorearb.h"
+
 #include "platform.h"
 
 #include "gl_renderer.cpp"
@@ -49,6 +50,13 @@ int main()
         return -1;
     }
 
+    renderData = (RenderData*)bump_alloc(&persistentStorage, sizeof(RenderData));
+    if(!renderData)
+    {
+        SM_ERROR("Failed to allocate RenderData");
+        return -1;
+    }
+
     gameState = (GameState*)bump_alloc(&persistentStorage, sizeof(GameState));
 
     if(!gameState)
@@ -57,17 +65,8 @@ int main()
         return -1;
     }
 
-    renderData = (RenderData*)bump_alloc(&persistentStorage, sizeof(RenderData));
-    if(!renderData)
-    {
-        SM_ERROR("Failed to allocate RenderData");
-        return -1;
-    }
-
-    platform_create_window(1200, 720, "BreakNotes");
-    input->screenSizeX = 1200;
-    input->screenSizeY = 720;
-
+    platform_fill_keycode_lookup_table();
+    platform_create_window(1280, 720, "BreakNotes");
     gl_init(&transientStorage);
 
     while(running)

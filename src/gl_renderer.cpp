@@ -11,6 +11,7 @@
 // #############################################################################
 const char* TEXTURE_PATH = "assets/textures/TEXTURE_ATLAS.png";
 
+
 // #############################################################################
 //                           OpenGL Structs
 // #############################################################################
@@ -149,8 +150,8 @@ bool gl_init(BumpAllocator* transientStorage)
   {
     glGenBuffers(1, &glContext.transformSBOID);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, glContext.transformSBOID);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * MAX_TRANSFORMS,
-                 renderData->transforms, GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * renderData->transforms.maxElements,
+                 renderData->transforms.elements, GL_DYNAMIC_DRAW);
   }
 
   // Uniforms
@@ -181,15 +182,14 @@ void gl_render()
   glClearColor(119.0f / 255.0f, 33.0f / 255.0f, 111.0f / 255.0f, 1.0f);
   glClearDepth(0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, input->screenSizeX, input->screenSizeY);
+  glViewport(0, 0, input->screenSize.x, input->screenSize.y);
 
   // Copy screen size to the GPU
-  Vec2 screenSize = {(float)input->screenSizeX, (float)input->screenSizeY};
+  Vec2 screenSize = {(float)input->screenSize.x, (float)input->screenSize.y};
   glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
 
   // Orthographic Projection
   OrthographicCamera2D camera = renderData->gameCamera;
-
   Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
                                                  camera.position.x + camera.dimensions.x / 2.0f, 
                                                  camera.position.y - camera.dimensions.y / 2.0f, 
@@ -199,12 +199,12 @@ void gl_render()
   // Opaque Objects
   {
     // Copy transforms to the GPU
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->transformCount,
-                    renderData->transforms);
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData->transforms.count,
+                    renderData->transforms.elements);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->transformCount);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData->transforms.count);
 
     // Reset for next Frame
-    renderData->transformCount = 0;
+    renderData->transforms.count = 0;
   }
 }
