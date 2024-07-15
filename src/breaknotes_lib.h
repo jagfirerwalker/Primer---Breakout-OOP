@@ -27,7 +27,7 @@
 
 // Utility macros
 #define BIT(x) 1 << (x)
-#define b8 char
+#define b8 char // b8 is of type char, e.g. b8 a = 0;
 #define KB(x) ((unsigned long long)1024 * x)
 #define MB(x) ((unsigned long long)1024 * KB(x))
 #define GB(x) ((unsigned long long)1024 * MB(x))

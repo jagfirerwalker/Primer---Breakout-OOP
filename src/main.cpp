@@ -66,7 +66,7 @@ int main()
     }
 
     platform_fill_keycode_lookup_table();
-    platform_create_window(1280, 640, "BreakNotes");
+    platform_create_window(1280, 720, "BreakNotes");
     gl_init(&transientStorage);
 
     while(running)
