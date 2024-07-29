@@ -116,7 +116,7 @@ struct Array
 
   T& operator[](int idx)
   {
-    SM_ASSERT(idx >= 0, "idx neagtive!");
+    SM_ASSERT(idx >= 0, "idx negative!");
     SM_ASSERT(idx < count, "Idx out of bounds!");// if idx is greater than count, it is out of bounds
     return elements[idx];
   }
@@ -130,7 +130,7 @@ struct Array
 
   void remove_idx_and_swap(int idx)
   {
-    SM_ASSERT(idx >= 0, "idx neagtive!");
+    SM_ASSERT(idx >= 0, "idx negative!");
     SM_ASSERT(idx < count, "Idx out of bounds!");
 
     elements[idx] = elements[--count];
@@ -350,6 +350,15 @@ bool copy_file(char* fileName, char* outputName, BumpAllocator* bumpAllocator)
 // #############################################################################
 //                           Math stuff
 // #############################################################################
+long long max(long long a, long long b)
+{
+  if(a>b)
+  {
+    return a;
+  }
+  return b;
+}
+
 struct Vec2
 {
   float x;
