@@ -15,6 +15,7 @@
 // #############################################################################
 static HWND window;
 static HDC dc;
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT_ptr;
 
 // #############################################################################
 //                           Platform Implementations
@@ -181,6 +182,8 @@ bool platform_create_window(int width, int height, char* title)
       (PFNWGLCHOOSEPIXELFORMATARBPROC)platform_load_gl_function("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB =
       (PFNWGLCREATECONTEXTATTRIBSARBPROC)platform_load_gl_function("wglCreateContextAttribsARB");
+    wglSwapIntervalEXT_ptr =
+      (PFNWGLSWAPINTERVALEXTPROC)platform_load_gl_function("wglSwapIntervalEXT");
 
     if(!wglCreateContextAttribsARB || !wglChoosePixelFormatARB)
     {
@@ -299,15 +302,6 @@ bool platform_create_window(int width, int height, char* title)
 
 void platform_update_window()
 {
-  // Clear the transitionCount for every key
-  {
-    for (int keyCode = 0; keyCode < KEY_COUNT; keyCode++)
-    {
-      input->keys[keyCode].justReleased = false;
-      input->keys[keyCode].justPressed = false;
-      input->keys[keyCode].halfTransitionCount = 0;
-    }
-  }
   // Gather new Input
   MSG msg;
 
@@ -323,10 +317,8 @@ void platform_update_window()
     GetCursorPos(&point);
     ScreenToClient(window, &point);
 
-    input->prevMousePos = input->mousePos;
     input->mousePos.x = point.x;
     input->mousePos.y = point.y;
-    input->relMouse = input->mousePos - input->prevMousePos;
 
     // Mouse Position World
     input->mousePosWorld = screen_to_world(input->mousePos);
@@ -355,6 +347,11 @@ void* platform_load_gl_function(char* funName)
 void platform_swap_buffers()
 {
   SwapBuffers(dc);
+}
+
+void platform_set_vsync(bool vSync)
+{
+  wglSwapIntervalEXT_ptr(vSync);
 }
 
 void* platform_load_dynamic_library(char* dll)

@@ -7,6 +7,7 @@
 #include <sys/stat.h>  // For getting file timestamps
 #include <cstdarg>
 #include <cstdio>
+#include <math.h>
 
 
 // #############################################################################
@@ -359,6 +360,21 @@ long long max(long long a, long long b)
   return b;
 }
 
+// This function performs linear interpolation (LERP) between two values
+float lerp(float a, float b, float t)
+{
+  // 'a' is the start value
+  // 'b' is the end value
+  // 't' is the interpolation factor (usually between 0 and 1)
+
+  // The formula calculates a point between 'a' and 'b' based on 't'
+  return a + (b - a) * t;
+  
+  // When t = 0, the result is 'a'
+  // When t = 1, the result is 'b'
+  // For values of t between 0 and 1, it returns a value between 'a' and 'b'
+}
+
 struct Vec2
 {
   float x;
@@ -389,6 +405,22 @@ struct IVec2
 Vec2 vec_2(IVec2 v)
 {
   return Vec2{(float)v.x, (float)v.y};
+}
+
+Vec2 lerp(Vec2 a, Vec2 b, float t)
+{
+  Vec2 result;
+  result.x = lerp(a.x, b.x, t);
+  result.y = lerp(a.y, b.y, t);
+  return result;
+}
+
+IVec2 lerp(IVec2 a, IVec2 b, float t)
+{
+  IVec2 result;
+  result.x = (int)floorf(lerp((float)a.x, (float)b.x, t));
+  result.y = (int)floorf(lerp((float)a.y, (float)b.y, t));
+  return result;
 }
 
 struct Vec4
