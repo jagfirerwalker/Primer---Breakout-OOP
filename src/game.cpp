@@ -14,6 +14,22 @@
 //                           Game Functions
 // #############################################################################
 
+// Calculate and update FPS
+void update_fps(float dt)
+{
+  gameState->frameCount++;
+  gameState->fpsUpdateTimer += dt;
+
+  // Update FPS every 0.5 seconds
+  if(gameState->fpsUpdateTimer >= 0.5f)
+  {
+      gameState->currentFps = gameState->frameCount / gameState->fpsUpdateTimer;
+      gameState->frameCount = 0;
+      gameState->fpsUpdateTimer = 0.0f;
+  }
+}
+
+
 // Check if a specific game input was just pressed
 bool just_pressed(GameInputType type)
 {
@@ -211,6 +227,9 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
   {
     renderData->gameCamera.dimensions = {WORLD_WIDTH, WORLD_HEIGHT};
     gameState->initialized = true;
+    gameState->fpsUpdateTimer = 0.0f;
+    gameState->frameCount = 0;
+    gameState->currentFps = 0.0f;
 
     // Initialize Tileset
     {
@@ -246,9 +265,11 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
     renderData->gameCamera.position.y = -90;
   }
 
+  
   // Fixed Update Loop
   {
     gameState->updateTimer += dt;
+    update_fps(dt);
     while(gameState->updateTimer >= UPDATE_DELAY)
     {
       gameState->updateTimer -= UPDATE_DELAY;
@@ -279,6 +300,8 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
     IVec2 playerPos = lerp(player.prevPos, player.pos, interpolatedDT);
     draw_sprite(SPRITE_DICE, playerPos);
   }
+
+  
 
   // Drawing Tileset
   {

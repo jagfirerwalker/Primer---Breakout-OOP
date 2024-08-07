@@ -78,6 +78,10 @@ int main()
     // Update
     platform_update_window();
     update_game(gameState, renderData, input, dt);
+
+    // Debug print
+    SM_TRACE("Current FPS: %.1f", gameState->currentFps);
+    
     gl_render(&transientStorage);
 
     platform_swap_buffers();
