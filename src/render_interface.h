@@ -1,5 +1,7 @@
 #pragma once // Ensures this header is only included once
 
+#define ENGINE
+
 #include "assets.h"
 #include "breaknotes_lib.h"
 #include "shader_header.h"
@@ -38,7 +40,7 @@ struct Glyph
   Vec2 advance;
   IVec2 textureCoords;
   IVec2 size;
-}
+};
 
 struct RenderData
 {
@@ -59,7 +61,7 @@ struct RenderData
 static RenderData* renderData; // Global render data instance
 
 // #############################################################################
-//                           Renderer Untility
+//                           Renderer Utility
 // #############################################################################
 
 IVec2 screen_to_world(IVec2 screenPos)
@@ -87,9 +89,9 @@ int get_material_idx(Material material = {})
   material.color.b = powf(material.color.b, 2.2f);
   material.color.a = powf(material.color.a, 2.2f);
 
-  for (int materialIdx = 0; materialIdx < renderData->material.count; materialIdx++)
+  for (int materialIdx = 0; materialIdx < renderData->materials.count; materialIdx++)
   {
-    if (renderData->materials[materialIdx] == material)
+    if(renderData->materials[materialIdx] == material)
     {
       return materialIdx;
     }
@@ -122,14 +124,14 @@ void draw_sprite(SpriteID spriteID, Vec2 pos, DrawData drawData = {})
 {
   Sprite sprite = get_sprite(spriteID);
 
-  sprite.atlasOffset.x += drawData.animationIdx * sprite.size.x;
+  sprite.atlasOffset.x += drawData.animationIdx * sprite.spriteSize.x;
 
   Transform transform = {};
   transform.materialIdx = get_material_idx(drawData.material);
   transform.pos = pos - vec_2(sprite.spriteSize) / 2.0f;
   transform.size = vec_2(sprite.spriteSize);
   transform.atlasOffset = sprite.atlasOffset;
-  transform.spriteSize = sprite.size;
+  transform.spriteSize = sprite.spriteSize;
   transform.renderOptions = drawData.renderOptions;
 
   renderData->transforms.add(transform);

@@ -29,6 +29,7 @@ struct Sprite
 {
   IVec2 atlasOffset;
   IVec2 spriteSize;
+  int frameCount = 1;
 };
 
 // #############################################################################
@@ -39,6 +40,7 @@ struct Sprite
 Sprite get_sprite(SpriteID spriteID)
 {
   Sprite sprite = {};
+  sprite.frameCount = 1;
 
   switch(spriteID)
   {

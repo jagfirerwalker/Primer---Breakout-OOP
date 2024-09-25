@@ -368,7 +368,6 @@ long long max(long long a, long long b)
   }
   return b;
 }
-
 float max(float a, float b)
 {
   if(a > b)

@@ -8,6 +8,7 @@
 // To load TTF Files
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "breaknotes_lib.h"
 
 // #############################################################################
 //                           OpenGL Constants
@@ -115,16 +116,19 @@ void load_font(char* filePath, int fontSize)
     }
 
     // Font Height
-    renderData->fontHeight = max((fontFace->size->metrics.ascender - fontFace->size->metrics.descender) >> 6, renderData->fontHeight);
+    renderData->fontHeight = max((fontFace->size->metrics.ascender - fontFace->size->metrics.descender) >> 6, 
+     renderData->fontHeight); // Needed by FT_Library to be able to display text
 
     for (unsigned int y = 0; y < fontFace->glyph->bitmap.rows; ++y)
     {
       for (unsigned int x = 0; x < fontFace->glyph->bitmap.width; ++x)
       {
-        textureBuffer[(row + y) * textureWidth + col + x] = fontFace->glyph->bitmap.buffer[y * fontFace->glyph->bitmap.width + x];
+        textureBuffer[(row + y) * textureWidth + col + x] = fontFace->glyph->bitmap.buffer[y * fontFace->glyph->bitmap.width + x]; // go through the x and y (columns and rows) and copy the data to textureBuffer
       }
     }
 
+    // Get Handle to Glyphs
+    // Detail about text rendering: https://learnopengl.com/In-Practice/Text-Rendering
     Glyph* glyph = &renderData->glyphs[glyphIdx];
     glyph->textureCoords = {col, row};
     glyph->size = {
@@ -133,8 +137,8 @@ void load_font(char* filePath, int fontSize)
     };
     glyph->advance =
     {
-      (int)(fontFace->glyph->advance.x >> 6),
-      (int)(fontFace->glyph->advance.y >> 6)
+      (float)(fontFace->glyph->advance.x >> 6),
+      (float)(fontFace->glyph->advance.y >> 6)
     };
     glyph->offset =
     {
@@ -302,7 +306,7 @@ void gl_render(BumpAllocator* transientStorage)
        timestampFrag > glContext.shaderTimestamp)
     {
       // Add a small delay to allow file operations to complete
-      Sleep(100);
+      Sleep(100); // AVOID SLEEP IN PRODUCTION CODE
 
       GLuint vertShaderID = gl_create_shader(GL_VERTEX_SHADER, 
                                               "assets/shaders/quad.vert", transientStorage);
@@ -369,7 +373,7 @@ void gl_render(BumpAllocator* transientStorage)
     renderData->transforms.count = 0;
   }
 
-// UI Pass
+  // UI Pass
   {
     // UI Orthographic Projection
     {

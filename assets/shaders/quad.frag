@@ -8,8 +8,8 @@ layout (location = 2) in flat in material Idx;
 layout (location = 0) out vec4 fragColor;
 
 // Bindings, binding = 0 binds to GL_TEXTURE0, binding = 1 binds to GL_TEXTURE1, etc.
-layout (location = 0) uniform sampler2D textureAtlas;
-layout (location = 1) uniform sampler2D fontAtlas;
+layout (binding = 0) uniform sampler2D textureAtlas;
+layout (binding = 1) uniform sampler2D fontAtlas;
 
 // Input Buffers
 layout (std430, binding = 1) buffer Materials

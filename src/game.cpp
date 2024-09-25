@@ -226,7 +226,13 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
   if(!gameState->initialized)
   {
     renderData->gameCamera.dimensions = {WORLD_WIDTH, WORLD_HEIGHT};
-    gameState->initialized = true;
+    renderData->gameCamera.position.x = 160;
+    renderData->gameCamera.position.y = -90;
+
+    renderData->uiCamera.dimensions = {WORLD_WIDTH, WORLD_HEIGHT};
+    renderData->uiCamera.position.x = 160;
+    renderData->uiCamera.position.y = -90;
+
     gameState->fpsUpdateTimer = 0.0f;
     gameState->frameCount = 0;
     gameState->currentFps = 0.0f;
@@ -261,11 +267,9 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
       gameState->keyMappings[MOUSE_RIGHT].keys.add(KEY_MOUSE_RIGHT);
     }
 
-    renderData->gameCamera.position.x = 160;
-    renderData->gameCamera.position.y = -90;
+    gameState->initialized = true;
   }
 
-  
   // Fixed Update Loop
   {
     gameState->updateTimer += dt;
@@ -293,6 +297,8 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
 
   // Calculate interpolation factor for smooth rendering between fixed updates
   float interpolatedDT = (float)(gameState->updateTimer / UPDATE_DELAY);
+
+  // draw_ui_text("FPS: ", {0, 20}, {.material = {.color = COLOR_BLUE}, .fontSize = 2.0f});
 
   // Draw Player
   {

@@ -1,7 +1,7 @@
 #ifdef ENGINE // Inside Game / Engine
 #pragma once
 
-#include "schnitzel_lib.h"
+#include "breaknotes_lib.h"
 #define vec2 Vec2
 #define ivec2 IVec2
 #define vec4 Vec4
@@ -26,10 +26,10 @@ int RENDERING_OPTION_FONT = BIT(2);
 // #############################################################################
 struct Transform
 {
-  vec2 pos; // This is currently the Top Left!!
-  vec2 size;
-  ivec2 atlasOffset;
-  ivec2 spriteSize;
+  Vec2 pos; // This is currently the Top Left!!
+  Vec2 size;
+  IVec2 atlasOffset;
+  IVec2 spriteSize;
   int renderOptions;
   int materialIdx;
 };
@@ -38,12 +38,12 @@ struct Material
 {
 	// Operator inside the Engine to compare materials
 #ifdef ENGINE 
-  vec4 color = COLOR_WHITE;
+  Vec4 color = COLOR_WHITE;
 	bool operator==(Material other)
 	{
 		return color == other.color;
 	}
 #else
-  vec4 color;
+  Vec4 color;
 #endif
 };

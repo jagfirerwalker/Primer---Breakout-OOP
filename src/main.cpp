@@ -39,7 +39,6 @@ void reload_game_dll(BumpAllocator* transientStorage);
 
 int main()
 {
-  get_delta_time();
   BumpAllocator transientStorage = make_bump_allocator(MB(50));
   BumpAllocator persistentStorage = make_bump_allocator(MB(50));
 
