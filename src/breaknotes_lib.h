@@ -351,13 +351,48 @@ bool copy_file(char* fileName, char* outputName, BumpAllocator* bumpAllocator)
 // #############################################################################
 //                           Math stuff
 // #############################################################################
-long long max(long long a, long long b)
+int min(int a, int b)
 {
-  if(a>b)
+  if(a < b)
   {
     return a;
   }
   return b;
+}
+
+long long max(long long a, long long b)
+{
+  if(a > b)
+  {
+    return a;
+  }
+  return b;
+}
+float max(float a, float b)
+{
+  if(a > b)
+  {
+    return a;
+  }
+  return b;
+}
+
+float min(float a, float b)
+{
+  if(a < b)
+  {
+    return a;
+  }
+  return b;
+}
+
+float approach(float current, float target, float increase)
+{
+  if(current < target)
+  {
+    return min(current + increase, target);
+  }
+  return max(current - increase, target);
 }
 
 // This function performs linear interpolation (LERP) between two values
@@ -389,6 +424,16 @@ struct Vec2
   {
     return {x - other.x, y - other.y};
   }
+
+  Vec2 operator+(Vec2 other)
+  {
+      return {x + other.x, y + other.y};
+  }
+  
+  Vec2 operator*(float scalar)
+  {
+      return {x * scalar, y * scalar};
+  }
 };
 
 struct IVec2
@@ -399,6 +444,20 @@ struct IVec2
   IVec2 operator-(IVec2 other)
   {
     return {x - other.x, y - other.y};
+  }
+
+  IVec2& operator-=(int value)
+  {
+    x -= value;
+    y -= value;
+    return *this;
+  }
+
+  IVec2& operator+=(int value)
+  {
+    x += value;
+    y += value;
+    return *this;
   }
 };
 
@@ -420,6 +479,17 @@ IVec2 lerp(IVec2 a, IVec2 b, float t)
   IVec2 result;
   result.x = (int)floorf(lerp((float)a.x, (float)b.x, t));
   result.y = (int)floorf(lerp((float)a.y, (float)b.y, t));
+  // Using floorf here for two main reasons:
+    
+  // 1. To ensure consistent rounding behavior:
+  //    floorf always rounds down to the nearest integer.
+  //    This provides a predictable result when converting 
+  //    from float to int, especially important for negative numbers.
+  
+  // 2. To prevent potential issues with float-to-int conversion:
+  //    Direct casting from float to int can lead to undefined behavior
+  //    if the float is outside the range of representable integers.
+  //    floorf ensures we're dealing with a whole number before the cast.
   return result;
 }
 
@@ -448,6 +518,11 @@ struct Vec4
   float& operator[](int idx)
   {
     return values[idx];
+  }
+
+  bool operator==(Vec4 other)
+  {
+    return x == other.x && y == other.y && z == other.z && w == other.w;
   }
 };
 
@@ -499,3 +574,13 @@ Mat4 orthographic_projection(float left, float right, float top, float bottom)
 
   return result;
 }
+
+//#######################################################################
+//                          Normal Colors
+//#######################################################################
+constexpr Vec4 COLOR_WHITE = {1.0f, 1.0f, 1.0f, 1.0f};
+constexpr Vec4 COLOR_RED = {1.0f, 0.0f, 0.0f, 1.0f};
+constexpr Vec4 COLOR_GREEN = {0.0f, 1.0f, 0.0f, 1.0f};
+constexpr Vec4 COLOR_BLUE = {0.0f, 0.0f, 1.0f, 1.0f};
+constexpr Vec4 COLOR_YELLOW = {1.0f, 1.0f, 0.0f, 1.0f};
+constexpr Vec4 COLOR_BLACK = {0.0f, 0.0f, 0.0f, 1.0};
