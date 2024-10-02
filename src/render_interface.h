@@ -1,11 +1,15 @@
 #pragma once // Ensures this header is only included once
 
 #include "assets.h"
+#include "shader_header.h"
 #include "breaknotes_lib.h"
 
 // #############################################################################
 //                           Renderer Constants
 // #############################################################################
+
+int RENDER_OPTION_FLIP_X = BIT(0);
+int RENDER_OPTION_FLIP_Y = BIT(1);
 
 // #############################################################################
 //                           Renderer Structs
@@ -17,19 +21,11 @@ struct OrthographicCamera2D
   Vec2 position;
 };
 
-
-struct Transform 
-{
-  Vec2 pos;          // Position of the sprite
-  Vec2 size;         // Size of the sprite
-  IVec2 atlasOffset; // Offset in the texture atlas
-  IVec2 spriteSize;  // Size of the sprite in the texture atlas
-};
-
 struct RenderData
 {
   OrthographicCamera2D gameCamera;      // Camera used to render the game
   OrthographicCamera2D uiCamera;        // Camera used to render the UI
+
   Array<Transform, 1000> transforms;     // Array of transforms to render
 };
 
@@ -82,6 +78,7 @@ void draw_quad(Vec2 pos, Vec2 size)
 void draw_sprite(SpriteID spriteID, Vec2 pos)
 {
   Sprite sprite = get_sprite(spriteID);
+
 
   Transform transform = {};
   transform.pos = pos - vec_2(sprite.spriteSize) / 2.0f;

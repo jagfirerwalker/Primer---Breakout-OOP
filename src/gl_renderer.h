@@ -76,10 +76,12 @@ static PFNGLCULLFACEPROC glCullFace_ptr;
 static PFNGLBLENDFUNCPROC glBlendFunc_ptr;
 static PFNGLFRONTFACEPROC glFrontFace_ptr;
 static PFNGLCLEARDEPTHPROC glClearDepth_ptr;
+static PFNGLGETSTRINGPROC glGetString_ptr;
 
 void load_gl_functions()
 {
   // Load OpenGL Functions from the Operating System / Graphics Card
+  glGetString_ptr = (PFNGLGETSTRINGPROC)platform_load_gl_function("glGetString");
   glClearDepth_ptr = (PFNGLCLEARDEPTHPROC)platform_load_gl_function("glClearDepth");
   glTexImage2D_ptr = (PFNGLTEXIMAGE2DPROC)platform_load_gl_function("glTexImage2D");
   glTexParameteri_ptr = (PFNGLTEXPARAMETERIPROC)platform_load_gl_function("glTexParameteri");
@@ -501,4 +503,9 @@ void glFrontFace(GLenum mode)
 void glClearDepth(GLdouble depth)
 {
     glClearDepth_ptr(depth);
+}
+
+const GLubyte* glGetString(GLenum name)
+{
+    return glGetString_ptr(name);
 }

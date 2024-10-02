@@ -5,7 +5,10 @@
             "label": "Build",
             "type": "shell",
             "command": "sh build.sh",
-            "group": "build"
-        },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
     ]
 }
