@@ -3,12 +3,16 @@
 #define ENGINE
 
 #include "assets.h"
+#include "shader_header.h"
 #include "breaknotes_lib.h"
 #include "shader_header.h"
 
 // #############################################################################
 //                           Renderer Constants
 // #############################################################################
+
+int RENDER_OPTION_FLIP_X = BIT(0);
+int RENDER_OPTION_FLIP_Y = BIT(1);
 
 // #############################################################################
 //                           Renderer Structs
@@ -20,37 +24,11 @@ struct OrthographicCamera2D
   Vec2 position;
 };
 
-struct DrawData
-{
-  Material material = {};
-  int animationIdx = 0;
-  int renderOptions;
-};
-
-struct TextData
-{
-  Material material = {};
-  float fontSize = 1.0f;
-  int renderOptions;
-};
-
-struct Glyph
-{
-  Vec2 offset;
-  Vec2 advance;
-  IVec2 textureCoords;
-  IVec2 size;
-};
 
 struct RenderData
 {
   OrthographicCamera2D gameCamera;      // Camera used to render the game
   OrthographicCamera2D uiCamera;        // Camera used to render the UI
-
-  int fontHeight;
-  Glyph glyphs[127];                    // Array of glyphs for the font
-
-  Array<Material, 1000> materials;       // Array of materials to render
   Array<Transform, 1000> transforms;     // Array of transforms to render
   Array<Transform, 1000> uiTransforms;   // Array of transforms to render for the UI
 };
@@ -123,8 +101,6 @@ void draw_quad(Vec2 pos, Vec2 size)
 void draw_sprite(SpriteID spriteID, Vec2 pos, DrawData drawData = {})
 {
   Sprite sprite = get_sprite(spriteID);
-
-  sprite.atlasOffset.x += drawData.animationIdx * sprite.spriteSize.x;
 
   Transform transform = {};
   transform.materialIdx = get_material_idx(drawData.material);

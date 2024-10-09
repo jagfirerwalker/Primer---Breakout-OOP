@@ -5,11 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../third_party/stb_image.h"
 
-// To load TTF Files
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include "breaknotes_lib.h"
-
 // #############################################################################
 //                           OpenGL Constants
 // #############################################################################
@@ -44,45 +39,98 @@ static GLContext glContext;
 static void APIENTRY gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                          GLsizei length, const GLchar* message, const void* user)
 {
-  if(severity == GL_DEBUG_SEVERITY_LOW || 
-     severity == GL_DEBUG_SEVERITY_MEDIUM ||
-     severity == GL_DEBUG_SEVERITY_HIGH)
-  {
-    SM_ASSERT(false, "OpenGL Error: %s", message);
-  }
-  else
-  {
-    SM_TRACE((char*)message);
-  }
+    const char* sourceStr;
+    switch(source)
+    {
+        case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "Application"; break;
+        case GL_DEBUG_SOURCE_OTHER: sourceStr = "Other"; break;
+        default: sourceStr = "Unknown"; break;
+    }
+
+    const char* typeStr;
+    switch(type)
+    {
+        case GL_DEBUG_TYPE_ERROR: typeStr = "Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behavior"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "Undefined Behavior"; break;
+        case GL_DEBUG_TYPE_PORTABILITY: typeStr = "Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "Performance"; break;
+        case GL_DEBUG_TYPE_MARKER: typeStr = "Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP: typeStr = "Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER: typeStr = "Other"; break;
+        default: typeStr = "Unknown"; break;
+    }
+
+    const char* severityStr;
+    switch(severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH: severityStr = "High"; break;
+        case GL_DEBUG_SEVERITY_MEDIUM: severityStr = "Medium"; break;
+        case GL_DEBUG_SEVERITY_LOW: severityStr = "Low"; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: severityStr = "Notification"; break;
+        default: severityStr = "Unknown"; break;
+    }
+
+    printf("OpenGL Debug - Source: %s, Type: %s, ID: %u, Severity: %s\n", sourceStr, typeStr, id, severityStr);
+    printf("Message: %s\n", message);
+
+    if(severity == GL_DEBUG_SEVERITY_HIGH)
+    {
+        SM_ASSERT(false, "Critical OpenGL error");
+    }
 }
 
 GLuint gl_create_shader(int shaderType, char* shaderPath, BumpAllocator* transientStorage)
 {
   int fileSize = 0;
-  char* vertShader = read_file(shaderPath, &fileSize, transientStorage);
-  if(!vertShader)
+  char* shaderHeader = read_file("src/shader_header.h", &fileSize, transientStorage);
+  char* shaderSource = read_file(shaderPath, &fileSize, transientStorage);
+
+  if(!shaderHeader)
+  {
+    SM_ASSERT(false, "Failed to load shader_header.h");
+    return 0;
+  }
+
+  if(!shaderSource)
   {
     // SM_ASSERT(false, "Failed to load shader: %s",shaderPath);
     SM_ERROR("Failed to load shader: %s. Error: %s", shaderPath, strerror(errno));
     return 0;
   }
 
+
+  char* shaderSources[] =
+  {
+    "#version 430 core\n",
+    shaderHeader,
+    shaderSource
+  };
+
+
   GLuint shaderID = glCreateShader(shaderType);
-  glShaderSource(shaderID, 1, &vertShader, 0);
+  glShaderSource(shaderID, ArraySize(shaderSources), shaderSources, 0);
   glCompileShader(shaderID);
 
-  // Test if Shader compiled successfully 
+  GLint compileStatus;
+  glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
+  if (compileStatus != GL_TRUE)
   {
-    int success;
-    char shaderLog[2048] = {};
-
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-      glGetShaderInfoLog(shaderID, 2048, 0, shaderLog);
-      SM_ASSERT(false, "Failed to compile %s Shader, Error: %s", shaderPath, shaderLog);
+      GLint logLength;
+      glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
+      char* log = (char*)malloc(logLength);
+      glGetShaderInfoLog(shaderID, logLength, NULL, log);
+      
+      printf("Shader compilation failed for %s:\n%s\n", shaderPath, log);
+      
+      free(log);
+      glDeleteShader(shaderID);
       return 0;
-    }
   }
 
   return shaderID;
@@ -168,6 +216,16 @@ void load_font(char* filePath, int fontSize)
 bool gl_init(BumpAllocator* transientStorage)
 {
   load_gl_functions();
+
+  const char* glVersion = (const char*)glGetString(GL_VERSION);
+  const char* glslVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    if (glVersion && glslVersion) {
+        printf("OpenGL Version: %s\n", glVersion);
+        printf("GLSL Version: %s\n", glslVersion);
+    } else {
+        printf("Unable to get OpenGL or GLSL version.\n");
+    };
 
   glDebugMessageCallback(&gl_debug_callback, nullptr);
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -317,14 +375,39 @@ void gl_render(BumpAllocator* transientStorage)
         SM_ASSERT(false, "Failed to create Shaders");
         return;
       }
-      glAttachShader(glContext.programID, vertShaderID);
-      glAttachShader(glContext.programID, fragShaderID);
-      glLinkProgram(glContext.programID);
+      
+      // This code creates an OpenGL shader program by:
 
-      glDetachShader(glContext.programID, vertShaderID);
-      glDetachShader(glContext.programID, fragShaderID);
+      // Creating a program object.
+      // Attaching vertex and fragment shaders to it.
+      // Linking the shaders into a complete program.
+      // Detaching and deleting the shaders to free up resources.
+      GLuint programID = glCreateProgram();
+      glAttachShader(programID, vertShaderID);
+      glAttachShader(programID, fragShaderID);
+      glLinkProgram(programID);
+      glDetachShader(programID, vertShaderID);
+      glDetachShader(programID, fragShaderID);
       glDeleteShader(vertShaderID);
       glDeleteShader(fragShaderID);
+
+      // Validate if program works
+      {
+        int programSuccess;
+        char programInfoLog[512];
+        glGetProgramiv(programID,GL_LINK_STATUS, &programSuccess);
+
+        if(!programSuccess)
+        {
+          glGetProgramInfoLog(programID, 512, 0, programInfoLog);
+          
+          SM_ASSERT(0, "Failed to link program: %s", programInfoLog);
+          return;
+        }
+      }
+      glDeleteProgram(glContext.programID);
+      glContext.programID = programID;
+      glUseProgram(programID);
 
       glContext.shaderTimestamp = max(timestampVert, timestampFrag);
     }
@@ -336,6 +419,27 @@ void gl_render(BumpAllocator* transientStorage)
   glViewport(0, 0, input->screenSize.x, input->screenSize.y);
 
   // Copy screen size to the GPU
+
+  {
+    struct Vec2
+    {
+      float x;
+      float y;
+    };
+    Vec2 screenSize = {(float)input->screenSize.x, (float)input->screenSize.y};
+    glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
+  }
+  
+  // Orthographic Projection
+  OrthographicCamera2D camera = renderData->gameCamera;
+  Mat4 orthoProjection = orthographic_projection(camera.position.x - camera.dimensions.x / 2.0f, 
+                                                 camera.position.x + camera.dimensions.x / 2.0f, 
+                                                 camera.position.y - camera.dimensions.y / 2.0f, 
+                                                 camera.position.y + camera.dimensions.y / 2.0f);
+  glUniformMatrix4fv(glContext.orthoProjectionID, 1, GL_FALSE, &orthoProjection.ax);
+
+  // Opaque Objects
+
   {
     Vec2 screenSize = {(float)input->screenSize.x, (float)input->screenSize.y};
     glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
