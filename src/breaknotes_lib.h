@@ -349,6 +349,7 @@ bool copy_file(const char* fileName, const char* outputName, BumpAllocator* bump
 // #############################################################################
 //                           Math stuff
 // #############################################################################
+
 int sign(int x)
 {
   return (x >= 0)? 1 : -1;
@@ -367,6 +368,7 @@ int min(int a, int b)
 int max(int a, int b)
 {
   return (a > b)? a : b;
+
 }
 
 long long max(long long a, long long b)
@@ -400,6 +402,7 @@ float min(float a, float b)
 }
 
 float approach(float current, float target, float increase)
+
 {
   if(current < target)
   {
@@ -433,9 +436,11 @@ struct Vec2
     return {x - other.x, y - other.y};
   }
 
+
   operator bool()
   {
     return x != 0.0f && y != 0.0f;
+
   }
 };
 
@@ -452,12 +457,14 @@ struct IVec2
   IVec2& operator-=(int value)
   {
     x -= value; 
+
     y -= value;
     return *this;
   }
 
   IVec2& operator+=(int value)
   {
+
     x += value; 
     y += value;
     return *this;
@@ -467,6 +474,7 @@ struct IVec2
   {
     return {x / scalar, y / scalar};
   }
+
 };
 
 Vec2 vec_2(IVec2 v)
@@ -487,6 +495,17 @@ IVec2 lerp(IVec2 a, IVec2 b, float t)
   IVec2 result;
   result.x = (int)floorf(lerp((float)a.x, (float)b.x, t));
   result.y = (int)floorf(lerp((float)a.y, (float)b.y, t));
+  // Using floorf here for two main reasons:
+    
+  // 1. To ensure consistent rounding behavior:
+  //    floorf always rounds down to the nearest integer.
+  //    This provides a predictable result when converting 
+  //    from float to int, especially important for negative numbers.
+  
+  // 2. To prevent potential issues with float-to-int conversion:
+  //    Direct casting from float to int can lead to undefined behavior
+  //    if the float is outside the range of representable integers.
+  //    floorf ensures we're dealing with a whole number before the cast.
   return result;
 }
 
@@ -571,6 +590,7 @@ Mat4 orthographic_projection(float left, float right, float top, float bottom)
 
   return result;
 }
+
 
 struct Rect
 {
@@ -677,6 +697,7 @@ WAVFile* load_wav(char* path, BumpAllocator* bumpAllocator)
 	return wavFile;
 }
 
+
 //#######################################################################
 //                          Normal Colors
 //#######################################################################
@@ -685,21 +706,6 @@ constexpr Vec4 COLOR_RED = {1.0f, 0.0f, 0.0f, 1.0f};
 constexpr Vec4 COLOR_GREEN = {0.0f, 1.0f, 0.0f, 1.0f};
 constexpr Vec4 COLOR_BLUE = {0.0f, 0.0f, 1.0f, 1.0f};
 constexpr Vec4 COLOR_YELLOW = {1.0f, 1.0f, 0.0f, 1.0f};
+
 constexpr Vec4 COLOR_BLACK = {0.0f, 0.0f, 0.0f, 1.0};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

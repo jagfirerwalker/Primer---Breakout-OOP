@@ -3,7 +3,8 @@
 #include "input.h"
 #include "breaknotes_lib.h"
 #include "render_interface.h"
-
+#include <string>
+#include <sstream>
 
 // #############################################################################
 //                           Game Globals
@@ -62,6 +63,10 @@ struct GameState
   Tile worldGrid[WORLD_GRID.x][WORLD_GRID.y];
   
   KeyMapping keyMappings[GAME_INPUT_COUNT];
+
+  float fpsUpdateTimer;
+  int frameCount;
+  float currentFps;
 };
 
 

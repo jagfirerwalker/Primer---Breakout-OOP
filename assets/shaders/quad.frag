@@ -2,7 +2,9 @@
 // Input
 layout (location = 0) in vec2 textureCoordsIn;
 layout (location = 1) in flat int renderOptions;
+
 layout (location = 2) in flat int materialIdx;
+
 
 // Output
 layout (location = 0) out vec4 fragColor;
@@ -25,6 +27,7 @@ void main()
   {
     vec4 textureColor = texelFetch(fontAtlas, ivec2(textureCoordsIn), 0);
 
+
     if(textureColor.r == 0.0)
     {
       discard;
@@ -41,6 +44,8 @@ void main()
       discard;
     }
 
+
     fragColor = textureColor * material.color;
   }
+
 }
