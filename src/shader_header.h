@@ -26,6 +26,7 @@ int RENDERING_OPTION_FONT = BIT(2);
 // #############################################################################
 struct Transform
 {
+
   vec2 pos; // This is currently the Top Left!!
   vec2 size;
   ivec2 atlasOffset;
@@ -34,18 +35,23 @@ struct Transform
   int materialIdx;
   float layer;
   int padding;
+
 };
 
 struct Material
 {
 	// Operator inside the Engine to compare materials
 #ifdef ENGINE 
+
   vec4 color = COLOR_WHITE;
+
 	bool operator==(Material other)
 	{
 		return color == other.color;
 	}
 #else
+
   vec4 color;
+
 #endif
 };

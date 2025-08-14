@@ -7,13 +7,15 @@ layout (location = 1) out flat int renderOptions;
 layout (location = 2) out flat int materialIdx;
 
 // Buffers
+
 layout (std430, binding = 0) buffer TransformSBO
 {
   Transform transforms[];
-};
+}
 
 uniform vec2 screenSize;
 uniform mat4 orthoProjection;
+
 
 
 void main()
@@ -77,11 +79,4 @@ void main()
   renderOptions = transform.renderOptions;
   materialIdx = transform.materialIdx;
 }
-
-
-
-
-
-
-
 

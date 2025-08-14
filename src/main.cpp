@@ -39,7 +39,6 @@ void reload_game_dll(BumpAllocator* transientStorage);
 
 int main()
 {
-  get_delta_time();
   BumpAllocator transientStorage = make_bump_allocator(MB(50));
   BumpAllocator persistentStorage = make_bump_allocator(MB(50));
 
@@ -78,6 +77,10 @@ int main()
     // Update
     platform_update_window();
     update_game(gameState, renderData, input, dt);
+
+    // Debug print
+    SM_TRACE("Current FPS: %.1f", gameState->currentFps);
+    
     gl_render(&transientStorage);
 
     platform_swap_buffers();

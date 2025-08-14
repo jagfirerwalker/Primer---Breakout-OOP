@@ -14,6 +14,22 @@
 //                           Game Functions
 // #############################################################################
 
+// Calculate and update FPS
+void update_fps(float dt)
+{
+  gameState->frameCount++;
+  gameState->fpsUpdateTimer += dt;
+
+  // Update FPS every 0.5 seconds
+  if(gameState->fpsUpdateTimer >= 0.5f)
+  {
+      gameState->currentFps = gameState->frameCount / gameState->fpsUpdateTimer;
+      gameState->frameCount = 0;
+      gameState->fpsUpdateTimer = 0.0f;
+  }
+}
+
+
 // Check if a specific game input was just pressed
 bool just_pressed(GameInputType type)
 {
@@ -210,7 +226,16 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
   if(!gameState->initialized)
   {
     renderData->gameCamera.dimensions = {WORLD_WIDTH, WORLD_HEIGHT};
-    gameState->initialized = true;
+    renderData->gameCamera.position.x = 160;
+    renderData->gameCamera.position.y = -90;
+
+    renderData->uiCamera.dimensions = {WORLD_WIDTH, WORLD_HEIGHT};
+    renderData->uiCamera.position.x = 160;
+    renderData->uiCamera.position.y = -90;
+
+    gameState->fpsUpdateTimer = 0.0f;
+    gameState->frameCount = 0;
+    gameState->currentFps = 0.0f;
 
     // Initialize Tileset
     {
@@ -242,13 +267,13 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
       gameState->keyMappings[MOUSE_RIGHT].keys.add(KEY_MOUSE_RIGHT);
     }
 
-    renderData->gameCamera.position.x = 160;
-    renderData->gameCamera.position.y = -90;
+    gameState->initialized = true;
   }
 
   // Fixed Update Loop
   {
     gameState->updateTimer += dt;
+    update_fps(dt);
     while(gameState->updateTimer >= UPDATE_DELAY)
     {
       gameState->updateTimer -= UPDATE_DELAY;
@@ -273,12 +298,16 @@ EXPORT_FN void update_game(GameState* gameStateIn, RenderData* renderDataIn, Inp
   // Calculate interpolation factor for smooth rendering between fixed updates
   float interpolatedDT = (float)(gameState->updateTimer / UPDATE_DELAY);
 
+  // draw_ui_text("FPS: ", {0, 20}, {.material = {.color = COLOR_BLUE}, .fontSize = 2.0f});
+
   // Draw Player
   {
     Player& player = gameState->player;
     IVec2 playerPos = lerp(player.prevPos, player.pos, interpolatedDT);
     draw_sprite(SPRITE_DICE, playerPos);
   }
+
+  
 
   // Drawing Tileset
   {
